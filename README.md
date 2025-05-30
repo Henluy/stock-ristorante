@@ -12,7 +12,7 @@ App web per la gestione dell'inventario del ristorante.
 
 ## 🚀 Utilizzo
 
-Visita: [https://henluy.github.io/stock-ristorante](https://henluy.github.io/stock-ristorante)
+Visita: [https://Henluy.github.io/stock-ristorante](https://Henluy.github.io/stock-ristorante)
 
 ## 📱 Installazione
 
