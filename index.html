@@ -1,0 +1,4279 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
+    <!-- PWA Configuration -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Stock Ristorante">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    
+    <!-- Android Chrome -->
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Windows -->
+    <meta name="msapplication-TileImage" content="./icon-192.png">
+    <meta name="msapplication-TileColor" content="#667eea">
+    
+    <!-- SEO -->
+    <meta name="description" content="App per la gestione dell'inventario del ristorante. Controlla stock, prezzi e ricevi avvisi automatici.">
+    <meta name="keywords" content="ristorante, inventario, stock, gestione, app, PWA">
+    <meta name="author" content="Stock Ristorante App">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Stock Ristorante - Gestione Inventario">
+    <meta property="og:description" content="App professionale per la gestione dell'inventario del ristorante">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="./icon-512.png">
+    
+    <title>📦 Stock Ristorante - Gestione Inventario</title>
+    
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --dark-color: #343a40;
+            --light-color: #f8f9fa;
+            --border-radius: 12px;
+            --shadow: 0 4px 12px rgba(0,0,0,0.15);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            /* Support for iPhone notch */
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        .app-container {
+            max-width: 100vw;
+            min-height: 100vh;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Header mobile */
+        .mobile-header {
+            background: linear-gradient(135deg, var(--dark-color), #34495e);
+            color: white;
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 15px;
+        }
+
+        .mini-stat {
+            text-align: center;
+            font-size: 0.8em;
+        }
+
+        .mini-stat-number {
+            font-weight: bold;
+            font-size: 1.2em;
+            display: block;
+        }
+
+        /* Main content */
+        .content-cards {
+            padding: 15px;
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 70px; /* Space for bottom nav */
+            position: relative;
+        }
+
+        /* Pull to refresh */
+        .pull-indicator {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.8em;
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 50;
+        }
+
+        .pull-indicator.show {
+            opacity: 1;
+            top: 10px;
+        }
+
+        /* Search card */
+        .search-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 15px;
+            z-index: 50;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            background: var(--light-color);
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .filter-chips::-webkit-scrollbar {
+            display: none;
+        }
+
+        .chip {
+            padding: 6px 12px;
+            background: #e9ecef;
+            border-radius: 20px;
+            font-size: 0.8em;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid transparent;
+            user-select: none;
+        }
+
+        .chip.active {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .chip:hover {
+            background: #dee2e6;
+        }
+
+        .chip.active:hover {
+            background: var(--primary-color);
+        }
+
+        /* Product cards */
+        .product-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+        }
+
+        .product-card:active {
+            transform: scale(0.98);
+        }
+
+        .product-card.alert-card {
+            border-left-color: var(--danger-color);
+            background: linear-gradient(90deg, #fff5f5 0%, white 20%);
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .product-info h3 {
+            font-size: 1.1em;
+            margin-bottom: 4px;
+            color: var(--dark-color);
+        }
+
+        .product-category {
+            font-size: 0.8em;
+            color: #666;
+            background: var(--light-color);
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .alert-suggestion {
+            font-size: 0.8em;
+            color: var(--danger-color);
+            font-weight: 500;
+            margin-top: 4px;
+            padding: 4px 8px;
+            background: rgba(220, 53, 69, 0.1);
+            border-radius: 6px;
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .status-ok { 
+            background: #d4edda; 
+            color: #155724; 
+        }
+        
+        .status-low { 
+            background: #fff3cd; 
+            color: #856404; 
+        }
+        
+        .status-out { 
+            background: #f8d7da; 
+            color: #721c24; 
+        }
+
+        /* Product controls */
+        .product-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .stock-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stock-info {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .btn-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: var(--transition);
+            user-select: none;
+        }
+
+        .btn-primary { 
+            background: var(--primary-color); 
+            color: white; 
+        }
+        
+        .btn-secondary { 
+            background: #6c757d; 
+            color: white; 
+        }
+        
+        .btn-danger { 
+            background: var(--danger-color); 
+            color: white; 
+        }
+
+        .btn-circle:hover {
+            transform: scale(1.1);
+        }
+
+        .btn-circle:active {
+            transform: scale(0.9);
+        }
+
+        .stock-display {
+            font-weight: bold;
+            font-size: 1.1em;
+            min-width: 40px;
+            text-align: center;
+            padding: 8px;
+            background: var(--light-color);
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+        }
+
+        .price-display {
+            font-weight: bold;
+            color: var(--success-color);
+            font-size: 1.1em;
+        }
+
+        /* Category cards */
+        .category-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .category-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .category-card:active {
+            transform: scale(0.98);
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .category-header h3 {
+            margin: 0;
+            font-size: 1.1em;
+            color: var(--dark-color);
+        }
+
+        .alert-badge {
+            background: var(--danger-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7em;
+            font-weight: bold;
+        }
+
+        .category-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+            font-size: 0.8em;
+        }
+
+        .stat-label {
+            display: block;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+
+        .category-products {
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
+
+        .mini-product {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 0.8em;
+        }
+
+        .more-products {
+            text-align: center;
+            color: #666;
+            font-size: 0.8em;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        /* Export cards */
+        .export-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+        }
+
+        .export-card h3 {
+            margin: 0 0 15px 0;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .export-stat {
+            text-align: center;
+            padding: 15px;
+            background: var(--light-color);
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .export-stat:hover {
+            background: #e9ecef;
+        }
+
+        .export-stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .export-stat-label {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        /* Bottom navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            padding: 10px 0;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-item {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .nav-item:hover {
+            background: var(--light-color);
+        }
+
+        .nav-item.active:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .nav-icon {
+            display: block;
+            font-size: 1.5em;
+            margin-bottom: 2px;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: calc(85px + env(safe-area-inset-bottom));
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--success-color);
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 100;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .fab:active {
+            transform: scale(0.95);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            padding: 20px;
+            padding-top: calc(20px + env(safe-area-inset-top));
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: flex-end;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--dark-color);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .close-btn:hover {
+            background: var(--light-color);
+            color: var(--dark-color);
+        }
+
+        /* Form styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 0.9em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-input:invalid {
+            border-color: var(--danger-color);
+        }
+
+        .btn-full {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-success { 
+            background: var(--success-color); 
+            color: white; 
+        }
+        
+        .btn-cancel { 
+            background: var(--light-color); 
+            color: #666; 
+            border: 1px solid #ddd; 
+        }
+
+        .btn-full:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-full:active {
+            transform: translateY(0);
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            top: calc(20px + env(safe-area-inset-top));
+            left: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            color: white;
+            font-weight: 500;
+            z-index: 3000;
+            transform: translateY(-100px);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+
+        .toast.success { 
+            background: var(--success-color); 
+        }
+        
+        .toast.error { 
+            background: var(--danger-color); 
+        }
+        
+        .toast.warning { 
+            background: var(--warning-color); 
+            color: var(--dark-color); 
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 4000;
+            backdrop-filter: blur(5px);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: var(--dark-color);
+        }
+
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .product-controls {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+            
+            .stock-controls {
+                justify-content: center;
+            }
+
+            .export-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .category-stats {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+        }
+
+        /* Landscape orientation */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .content-cards {
+                margin-bottom: 60px;
+            }
+            
+            .fab {
+                bottom: calc(75px + env(safe-area-inset-bottom));
+            }
+
+            .modal {
+                align-items: center;
+            }
+
+            .modal-content {
+                border-radius: var(--border-radius);
+                max-height: 90vh;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1a1a2e, #16213e);
+                color: white;
+            }
+            
+            .app-container {
+                background: #1e1e1e;
+                color: white;
+            }
+            
+            .product-card, .search-card, .category-card, .export-card, .modal-content {
+                background: #2d2d2d;
+                color: white;
+                border-color: #444;
+            }
+
+            .form-input {
+                background: #2d2d2d;
+                color: white;
+                border-color: #444;
+            }
+
+            .bottom-nav {
+                background: #2d2d2d;
+                border-color: #444;
+            }
+        }
+
+        /* High contrast mode */
+        @media (prefers-contrast: high) {
+            .btn-circle, .btn-full {
+                border: 2px solid currentColor;
+            }
+            
+            .status-badge {
+                border: 1px solid currentColor;
+            }
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .bottom-nav, .fab, .mobile-header {
+                display: none !important;
+            }
+            
+            .content-cards {
+                margin-bottom: 0;
+            }
+            
+            .product-card {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Mobile -->
+        <div class="mobile-header">
+            <div class="header-title">
+                📦 Stock Ristorante
+            </div>
+            <div class="header-stats">
+                <div class="mini-stat">
+                    <span class="mini-stat-number" id="headerTotal">0</span>
+                    <div>Totali</div>
+                </div>
+                <div class="mini-stat">
+                    <span class="mini-stat-number" id="headerAlerts">0</span>
+                    <div>Avvisi</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-cards">
+            <!-- Pull to refresh indicator -->
+            <div class="pull-indicator" id="pullIndicator">
+                🔄 Rilascia per aggiornare
+            </div>
+
+            <!-- Search Card -->
+            <div class="search-card">
+                <input type="text" id="searchInput" class="search-input" 
+                       placeholder="🔍 Cerca prodotti..." autocomplete="off">
+                <div class="filter-chips" id="filterChips">
+                    <div class="chip active" data-filter="">Tutti</div>
+                    <div class="chip" data-filter="out">🔴 Esauriti</div>
+                    <div class="chip" data-filter="low">🟡 Bassi</div>
+                    <div class="chip" data-filter="Formaggi">🧀 Formaggi</div>
+                    <div class="chip" data-filter="Verdure">🥬 Verdure</div>
+                    <div class="chip" data-filter="Carne">🥩 Carne</div>
+                    <div class="chip" data-filter="Pasta">🍝 Pasta</div>
+                </div>
+            </div>
+
+            <!-- Product List -->
+            <div id="productList">
+                <!-- Products will be rendered here -->
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-state-icon">📦</div>
+                <h3>Nessun prodotto trovato</h3>
+                <p>Prova a modificare i filtri o aggiungi nuovi prodotti</p>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <button class="nav-item active" data-view="list">
+                <span class="nav-icon">📋</span>
+                Lista
+            </button>
+            <button class="nav-item" data-view="categories">
+                <span class="nav-icon">🏷️</span>
+                Categorie
+            </button>
+            <button class="nav-item" data-view="alerts">
+                <span class="nav-icon">🚨</span>
+                Avvisi
+            </button>
+            <button class="nav-item" data-view="export">
+                <span class="nav-icon">📊</span>
+                Export
+            </button>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button class="fab" id="addProductFAB" title="Aggiungi nuovo prodotto">+</button>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div id="addProductModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ Nuovo Prodotto</h3>
+                <button class="close-btn" type="button" aria-label="Chiudi">&times;</button>
+            </div>
+            <form id="addProductForm">
+                <div class="form-group">
+                    <label class="form-label" for="newCategory">Categoria *</label>
+                    <select id="newCategory" class="form-input" required>
+                        <option value="">Seleziona categoria</option>
+                        <option value="Formaggi">🧀 Formaggi</option>
+                        <option value="Latticini">🥛 Latticini</option>
+                        <option value="Pasta">🍝 Pasta</option>
+                        <option value="Verdure">🥬 Verdure</option>
+                        <option value="Erbe">🌿 Erbe</option>
+                        <option value="Frutta">🍎 Frutta</option>
+                        <option value="Carne">🥩 Carne</option>
+                        <option value="Pesce">🐟 Pesce</option>
+                        <option value="Salumi">🥓 Salumi</option>
+                        <option value="Dolci">🍰 Dolci</option>
+                        <option value="Condimenti">🧂 Condimenti</option>
+                        <option value="Bevande">🥤 Bevande</option>
+                        <option value="Altro">📦 Altro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="newProduct">Nome Prodotto *</label>
+                    <input type="text" id="newProduct" class="form-input" required 
+                           placeholder="Es. Mozzarella di Bufala" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="newStock">Stock Iniziale</label>
+                    <input type="number" id="newStock" class="form-input" value="0" 
+                           min="0" max="9999" step="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="newMinStock">Stock Minimo</label>
+                    <input type="number" id="newMinStock" class="form-input" value="1" 
+                           min="0" max="999" step="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="newPrice">Prezzo (€)</label>
+                    <input type="number" id="newPrice" class="form-input" value="0" 
+                           min="0" max="9999" step="0.01" placeholder="0.00">
+                </div>
+                <button type="submit" class="btn-full btn-success">
+                    ✅ Aggiungi Prodotto
+                </button>
+                <button type="button" class="btn-full btn-cancel" id="cancelAddProduct">
+                    ❌ Annulla
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        // Mobile Stock Manager App
+        class MobileStockApp {
+            constructor() {
+                this.stockData = [];
+                this.nextId = 1;
+                this.currentFilter = '';
+                this.currentView = 'list';
+                this.searchTerm = '';
+                
+                // Touch gesture variables
+                this.touchStartY = 0;
+                this.touchStartTime = 0;
+                this.isPulling = false;
+                
+                // Performance optimization
+                this.renderTimeout = null;
+                this.searchTimeout = null;
+                
+                this.init();
+            }
+
+            init() {
+                this.loadData();
+                this.setupEventListeners();
+                this.setupPWA();
+                this.setupGestures();
+                this.render();
+                this.startAutoSave();
+                this.updateFilterChips();
+            }
+
+            // ==================== DATA MANAGEMENT ====================
+            loadData() {
+                try {
+                    const saved = localStorage.getItem('mobileStockData');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        this.stockData = Array.isArray(parsed.stockData) ? parsed.stockData : [];
+                        this.nextId = parsed.nextId || 1;
+                        
+                        // Validate data integrity
+                        this.stockData = this.stockData.filter(item => 
+                            item && item.id && item.categoria && item.prodotto &&
+                            typeof item.stockAttuale === 'number' &&
+                            typeof item.stockMinimo === 'number' &&
+                            typeof item.prezzo === 'number'
+                        );
+                    } else {
+                        this.loadDefaultData();
+                    }
+                } catch (error) {
+                    console.error('Errore caricamento dati:', error);
+                    this.showToast('Errore nel caricamento dei dati', 'error');
+                    this.loadDefaultData();
+                }
+            }
+
+            saveData() {
+                try {
+                    const dataToSave = {
+                        stockData: this.stockData,
+                        nextId: this.nextId,
+                        lastSaved: new Date().toISOString(),
+                        version: '1.0'
+                    };
+                    localStorage.setItem('mobileStockData', JSON.stringify(dataToSave));
+                    return true;
+                } catch (error) {
+                    console.error('Errore salvataggio:', error);
+                    this.showToast('Errore nel salvataggio', 'error');
+                    return false;
+                }
+            }
+
+            loadDefaultData() {
+                this.stockData = [
+                    {id: this.nextId++, categoria: "Formaggi", prodotto: "Mozzarella di Bufala", stockAttuale: 5, stockMinimo: 2, prezzo: 8.50},
+                    {id: this.nextId++, categoria: "Formaggi", prodotto: "Parmigiano Reggiano", stockAttuale: 0, stockMinimo: 1, prezzo: 28.00},
+                    {id: this.nextId++, categoria: "Verdure", prodotto: "Lattuga Romana", stockAttuale: 1, stockMinimo: 3, prezzo: 1.50},
+                    {id: this.nextId++, categoria: "Verdure", prodotto: "Pomodori San Marzano", stockAttuale: 8, stockMinimo: 5, prezzo: 3.20},
+                    {id: this.nextId++, categoria: "Carne", prodotto: "Bistecca di Manzo", stockAttuale: 6, stockMinimo: 4, prezzo: 22.00},
+                    {id: this.nextId++, categoria: "Pasta", prodotto: "Strangozzi", stockAttuale: 0, stockMinimo: 2, prezzo: 3.50},
+                    {id: this.nextId++, categoria: "Pesce", prodotto: "Salmone Fresco", stockAttuale: 2, stockMinimo: 3, prezzo: 15.00},
+                    {id: this.nextId++, categoria: "Condimenti", prodotto: "Olio EVO", stockAttuale: 1, stockMinimo: 2, prezzo: 12.00}
+                ];
+                
+                // Initialize orders data
+                this.ordersData = [];
+                this.suppliersData = [
+                    {id: 1, nome: "Metro Cash & Carry", tipo: "Supermercato", telefono: "800-123-456", note: "Orari: 6-22, Carta Business richiesta"},
+                    {id: 2, nome: "Conad Superstore", tipo: "Supermercato", telefono: "075-123-456", note: "Consegne: Lun-Ven 8-18"},
+                    {id: 3, nome: "Caseificio Sociale", tipo: "Fornitore", telefono: "075-654-321", note: "Specializzato in formaggi locali"},
+                    {id: 4, nome: "Macelleria Rossi", tipo: "Fornitore", telefono: "075-789-123", note: "Carne di alta qualità, ordini min. €50"}
+                ];
+                this.nextSupplierId = 5;
+                this.nextOrderId = 1;
+                
+                this.saveData();
+                this.saveOrdersData();
+            }
+
+            // Orders data management
+            saveOrdersData() {
+                try {
+                    const ordersDataToSave = {
+                        ordersData: this.ordersData,
+                        suppliersData: this.suppliersData,
+                        nextOrderId: this.nextOrderId,
+                        nextSupplierId: this.nextSupplierId,
+                        lastSaved: new Date().toISOString()
+                    };
+                    localStorage.setItem('mobileOrdersData', JSON.stringify(ordersDataToSave));
+                    return true;
+                } catch (error) {
+                    console.error('Errore salvataggio ordini:', error);
+                    return false;
+                }
+            }
+
+            loadOrdersData() {
+                try {
+                    const saved = localStorage.getItem('mobileOrdersData');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        this.ordersData = Array.isArray(parsed.ordersData) ? parsed.ordersData : [];
+                        this.suppliersData = Array.isArray(parsed.suppliersData) ? parsed.suppliersData : [];
+                        this.nextOrderId = parsed.nextOrderId || 1;
+                        this.nextSupplierId = parsed.nextSupplierId || 1;
+                    }
+                } catch (error) {
+                    console.error('Errore caricamento ordini:', error);
+                }
+            }
+
+            // ==================== EVENT LISTENERS ====================
+            setupEventListeners() {
+                // Search
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    clearTimeout(this.searchTimeout);
+                    this.searchTimeout = setTimeout(() => {
+                        this.searchTerm = e.target.value.toLowerCase();
+                        this.render();
+                    }, 300);
+                });
+
+                // Filter chips
+                document.getElementById('filterChips').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('chip')) {
+                        document.querySelectorAll('.chip').forEach(chip => 
+                            chip.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentFilter = e.target.dataset.filter;
+                        this.render();
+                    }
+                });
+
+                // Bottom navigation
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const view = e.currentTarget.dataset.view;
+                        this.switchView(view);
+                    });
+                });
+
+                // FAB
+                document.getElementById('addProductFAB').addEventListener('click', () => {
+                    if (this.currentView === 'orders') {
+                        this.openNewOrderModal();
+                    } else {
+                        this.openAddProductModal();
+                    }
+                });
+
+                // Modal events
+                document.querySelectorAll('.close-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.closeModal(e.target.closest('.modal'));
+                    });
+                });
+
+                document.getElementById('cancelAddProduct').addEventListener('click', () => {
+                    this.closeAddProductModal();
+                });
+
+                document.getElementById('addProductForm').addEventListener('submit', (e) => {
+                    this.handleAddProduct(e);
+                });
+
+                // Product list delegation
+                document.getElementById('productList').addEventListener('click', (e) => {
+                    this.handleProductClick(e);
+                });
+
+                // Close modals on backdrop click
+                document.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('modal')) {
+                        this.closeModal(e.target);
+                    }
+                });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        const openModal = document.querySelector('.modal.show');
+                        if (openModal) {
+                            this.closeModal(openModal);
+                        }
+                    }
+                });
+            }
+
+            setupGestures() {
+                const contentCards = document.querySelector('.content-cards');
+                
+                // Pull to refresh
+                contentCards.addEventListener('touchstart', (e) => {
+                    this.touchStartY = e.touches[0].clientY;
+                    this.touchStartTime = Date.now();
+                }, { passive: true });
+
+                contentCards.addEventListener('touchmove', (e) => {
+                    const touchY = e.touches[0].clientY;
+                    const diff = touchY - this.touchStartY;
+                    
+                    if (diff > 0 && contentCards.scrollTop === 0) {
+                        this.isPulling = true;
+                        const indicator = document.getElementById('pullIndicator');
+                        
+                        if (diff > 80) {
+                            indicator.classList.add('show');
+                            indicator.textContent = '🔄 Rilascia per aggiornare';
+                        } else {
+                            indicator.textContent = '⬇️ Tira per aggiornare';
+                        }
+                    }
+                }, { passive: true });
+
+                contentCards.addEventListener('touchend', (e) => {
+                    const touchY = e.changedTouches[0].clientY;
+                    const diff = touchY - this.touchStartY;
+                    const indicator = document.getElementById('pullIndicator');
+                    
+                    if (this.isPulling && diff > 80) {
+                        this.refreshData();
+                    }
+                    
+                    indicator.classList.remove('show');
+                    this.isPulling = false;
+                }, { passive: true });
+            }
+
+            // ==================== PWA SETUP ====================
+            setupPWA() {
+                this.loadOrdersData(); // Load orders data on PWA setup
+                
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('./sw.js')
+                        .then(reg => console.log('SW registered'))
+                        .catch(err => console.log('SW registration failed'));
+                }
+
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    this.showInstallPrompt(e);
+                });
+            }
+
+            // ==================== RENDERING ====================
+            render() {
+                clearTimeout(this.renderTimeout);
+                this.renderTimeout = setTimeout(() => {
+                    if (this.currentView === 'orders') {
+                        this.renderOrdersView();
+                    } else {
+                        this.renderProducts();
+                    }
+                    this.updateStats();
+                }, 100);
+            }
+
+            renderProducts() {
+                const productList = document.getElementById('productList');
+                const emptyState = document.getElementById('emptyState');
+                const filteredData = this.getFilteredData();
+                
+                if (filteredData.length === 0) {
+                    productList.innerHTML = '';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                emptyState.style.display = 'none';
+                productList.innerHTML = filteredData.map(product => 
+                    this.createProductCard(product)
+                ).join('');
+            }
+
+            createProductCard(product) {
+                const status = this.getProductStatus(product);
+                const statusClass = `status-${status}`;
+                const statusText = this.getStatusText(status);
+
+                return `
+                    <div class="product-card ${this.currentView === 'alerts' && status !== 'ok' ? 'alert-card' : ''}" 
+                         data-product-id="${product.id}">
+                        <div class="product-header">
+                            <div class="product-info">
+                                <h3>${this.escapeHtml(product.prodotto)}</h3>
+                                <div class="product-category">${product.categoria}</div>
+                                ${this.currentView === 'alerts' && status !== 'ok' ? 
+                                    `<div class="alert-suggestion">${this.getAlertSuggestion(product, status)}</div>` : ''}
+                            </div>
+                            <div class="status-badge ${statusClass}">${statusText}</div>
+                        </div>
+                        ${this.currentView === 'alerts' && status !== 'ok' ? 
+                            `<div class="stock-info">
+                                <span>Attuale: <strong>${product.stockAttuale}</strong></span>
+                                <span>Minimo: <strong>${product.stockMinimo}</strong></span>
+                            </div>` : ''}
+                        <div class="product-controls">
+                            <div class="stock-controls">
+                                <button class="btn-circle btn-secondary decrease-btn" 
+                                        data-product-id="${product.id}" 
+                                        ${product.stockAttuale <= 0 ? 'disabled' : ''}>−</button>
+                                <div class="stock-display">${product.stockAttuale}</div>
+                                <button class="btn-circle btn-primary increase-btn" 
+                                        data-product-id="${product.id}">+</button>
+                            </div>
+                            <div class="price-display">€${product.prezzo.toFixed(2)}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ==================== ORDERS VIEW ====================
+            renderOrdersView() {
+                const productList = document.getElementById('productList');
+                const pendingOrders = this.ordersData.filter(order => order.stato === 'pending');
+                const completedOrders = this.ordersData.filter(order => order.stato === 'completed');
+                
+                productList.innerHTML = `
+                    <!-- Suppliers Section -->
+                    <div class="export-card">
+                        <h3>🏪 Fornitori e Supermercati</h3>
+                        <div class="suppliers-grid">
+                            ${this.suppliersData.map(supplier => this.createSupplierCard(supplier)).join('')}
+                        </div>
+                        <button class="btn-full btn-success" id="addSupplierBtn">
+                            ➕ Aggiungi Fornitore
+                        </button>
+                    </div>
+
+                    <!-- Pending Orders -->
+                    <div class="export-card">
+                        <h3>📋 Ordini Pendenti (${pendingOrders.length})</h3>
+                        ${pendingOrders.length === 0 ? 
+                            '<p style="text-align: center; color: #666; margin: 20px 0;">Nessun ordine pendente</p>' :
+                            pendingOrders.map(order => this.createOrderCard(order)).join('')
+                        }
+                    </div>
+
+                    <!-- Quick Order from Low Stock -->
+                    ${this.createQuickOrderSection()}
+
+                    <!-- Completed Orders -->
+                    <div class="export-card">
+                        <h3>✅ Ordini Completati (${completedOrders.length})</h3>
+                        ${completedOrders.slice(0, 5).map(order => this.createOrderCard(order)).join('')}
+                        ${completedOrders.length > 5 ? 
+                            `<p style="text-align: center; color: #666; margin: 10px 0;">
+                                <button class="btn-text" id="showAllOrders">Mostra tutti gli ordini (${completedOrders.length})</button>
+                            </p>` : ''
+                        }
+                    </div>
+                `;
+
+                this.setupOrdersEventListeners();
+            }
+
+            createSupplierCard(supplier) {
+                const orderCount = this.ordersData.filter(order => order.fornitoreId === supplier.id).length;
+                
+                return `
+                    <div class="supplier-card" data-supplier-id="${supplier.id}">
+                        <div class="supplier-header">
+                            <h4>${this.getSupplierIcon(supplier.tipo)} ${this.escapeHtml(supplier.nome)}</h4>
+                            <span class="supplier-type">${supplier.tipo}</span>
+                        </div>
+                        <div class="supplier-info">
+                            ${supplier.telefono ? `<div>📞 ${supplier.telefono}</div>` : ''}
+                            ${supplier.note ? `<div class="supplier-note">💡 ${supplier.note}</div>` : ''}
+                            <div class="supplier-stats">Ordini: <strong>${orderCount}</strong></div>
+                        </div>
+                        <div class="supplier-actions">
+                            <button class="btn-small btn-primary create-order-btn" data-supplier-id="${supplier.id}">
+                                📝 Nuovo Ordine
+                            </button>
+                            <button class="btn-small btn-secondary edit-supplier-btn" data-supplier-id="${supplier.id}">
+                                ✏️ Modifica
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            createOrderCard(order) {
+                const supplier = this.suppliersData.find(s => s.id === order.fornitoreId);
+                const supplierName = supplier ? supplier.nome : 'Fornitore sconosciuto';
+                const statusIcon = order.stato === 'pending' ? '⏳' : '✅';
+                const statusText = order.stato === 'pending' ? 'Pendente' : 'Completato';
+                const itemsCount = order.items ? order.items.length : 0;
+                const totalAmount = order.items ? order.items.reduce((sum, item) => sum + (item.quantita * item.prezzo), 0) : 0;
+
+                return `
+                    <div class="order-card ${order.stato}" data-order-id="${order.id}">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <h4>${statusIcon} Ordine #${order.id}</h4>
+                                <div class="order-supplier">${this.getSupplierIcon(supplier?.tipo)} ${supplierName}</div>
+                                <div class="order-date">📅 ${new Date(order.dataCreazione).toLocaleDateString('it-IT')}</div>
+                            </div>
+                            <div class="order-status">
+                                <span class="status-badge status-${order.stato}">${statusText}</span>
+                                ${totalAmount > 0 ? `<div class="order-total">€${totalAmount.toFixed(2)}</div>` : ''}
+                            </div>
+                        </div>
+                        
+                        ${order.items && order.items.length > 0 ? `
+                            <div class="order-items">
+                                <strong>Prodotti (${itemsCount}):</strong>
+                                ${order.items.slice(0, 3).map(item => `
+                                    <div class="order-item">
+                                        • ${item.prodotto} - ${item.quantita} ${item.unita || 'pz'} 
+                                        ${item.prezzo > 0 ? `(€${(item.quantita * item.prezzo).toFixed(2)})` : ''}
+                                    </div>
+                                `).join('')}
+                                ${order.items.length > 3 ? `<div class="order-item">... e altri ${order.items.length - 3} prodotti</div>` : ''}
+                            </div>
+                        ` : ''}
+                        
+                        ${order.note ? `<div class="order-note">📝 ${order.note}</div>` : ''}
+                        
+                        <div class="order-actions">
+                            <button class="btn-small btn-primary view-order-btn" data-order-id="${order.id}">
+                                👁️ Visualizza
+                            </button>
+                            ${order.stato === 'pending' ? `
+                                <button class="btn-small btn-success complete-order-btn" data-order-id="${order.id}">
+                                    ✅ Completato
+                                </button>
+                                <button class="btn-small btn-secondary edit-order-btn" data-order-id="${order.id}">
+                                    ✏️ Modifica
+                                </button>
+                            ` : ''}
+                            <button class="btn-small btn-danger delete-order-btn" data-order-id="${order.id}">
+                                🗑️ Elimina
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            createQuickOrderSection() {
+                const lowStockProducts = this.stockData.filter(product => 
+                    this.getProductStatus(product) !== 'ok'
+                );
+
+                if (lowStockProducts.length === 0) {
+                    return '';
+                }
+
+                return `
+                    <div class="export-card quick-order-section">
+                        <h3>⚡ Ordine Rapido - Prodotti in Esaurimento</h3>
+                        <p style="color: #666; margin-bottom: 15px;">
+                            Crea rapidamente un ordine per i prodotti con stock basso o esaurito
+                        </p>
+                        <div class="quick-order-products">
+                            ${lowStockProducts.slice(0, 5).map(product => {
+                                const suggestedQty = Math.max(product.stockMinimo * 2 - product.stockAttuale, 1);
+                                return `
+                                    <div class="quick-order-item">
+                                        <div class="quick-order-info">
+                                            <strong>${product.prodotto}</strong>
+                                            <span class="quick-order-category">${product.categoria}</span>
+                                            <span class="quick-order-status status-${this.getProductStatus(product)}">
+                                                Stock: ${product.stockAttuale}/${product.stockMinimo}
+                                            </span>
+                                        </div>
+                                        <div class="quick-order-controls">
+                                            <input type="number" class="quick-order-qty" 
+                                                   value="${suggestedQty}" min="1" max="999"
+                                                   data-product-id="${product.id}">
+                                            <span class="quick-order-unit">pz</span>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        ${lowStockProducts.length > 5 ? 
+                            `<p style="text-align: center; color: #666; margin: 10px 0;">
+                                ... e altri ${lowStockProducts.length - 5} prodotti
+                            </p>` : ''
+                        }
+                        <div class="quick-order-actions">
+                            <select id="quickOrderSupplier" class="form-input" style="margin-bottom: 10px;">
+                                <option value="">Seleziona fornitore</option>
+                                ${this.suppliersData.map(supplier => 
+                                    `<option value="${supplier.id}">${supplier.nome}</option>`
+                                ).join('')}
+                            </select>
+                            <button class="btn-full btn-success" id="createQuickOrderBtn">
+                                🚀 Crea Ordine Rapido
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            setupOrdersEventListeners() {
+                // Add supplier button
+                document.getElementById('addSupplierBtn')?.addEventListener('click', () => {
+                    this.openAddSupplierModal();
+                });
+
+                // Create order buttons
+                document.querySelectorAll('.create-order-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const supplierId = parseInt(e.target.dataset.supplierId);
+                        this.openCreateOrderModal(supplierId);
+                    });
+                });
+
+                // Edit supplier buttons
+                document.querySelectorAll('.edit-supplier-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const supplierId = parseInt(e.target.dataset.supplierId);
+                        this.openEditSupplierModal(supplierId);
+                    });
+                });
+
+                // Order action buttons
+                document.querySelectorAll('.view-order-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const orderId = parseInt(e.target.dataset.orderId);
+                        this.viewOrder(orderId);
+                    });
+                });
+
+                document.querySelectorAll('.complete-order-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const orderId = parseInt(e.target.dataset.orderId);
+                        this.completeOrder(orderId);
+                    });
+                });
+
+                document.querySelectorAll('.edit-order-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const orderId = parseInt(e.target.dataset.orderId);
+                        this.editOrder(orderId);
+                    });
+                });
+
+                document.querySelectorAll('.delete-order-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const orderId = parseInt(e.target.dataset.orderId);
+                        this.deleteOrder(orderId);
+                    });
+                });
+
+                // Quick order
+                document.getElementById('createQuickOrderBtn')?.addEventListener('click', () => {
+                    this.createQuickOrder();
+                });
+            }
+
+            // ==================== ORDER OPERATIONS ====================
+            openAddSupplierModal() {
+                this.showModal(`
+                    <div class="modal-header">
+                        <h3>🏪 Nuovo Fornitore</h3>
+                        <button class="close-btn" type="button">&times;</button>
+                    </div>
+                    <form id="addSupplierForm">
+                        <div class="form-group">
+                            <label class="form-label">Nome Fornitore *</label>
+                            <input type="text" id="supplierName" class="form-input" required 
+                                   placeholder="Es. Metro Cash & Carry">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tipo *</label>
+                            <select id="supplierType" class="form-input" required>
+                                <option value="">Seleziona tipo</option>
+                                <option value="Supermercato">🏪 Supermercato</option>
+                                <option value="Fornitore">🚚 Fornitore Specializzato</option>
+                                <option value="Cash & Carry">🏬 Cash & Carry</option>
+                                <option value="Mercato">🥬 Mercato Locale</option>
+                                <option value="Altro">📦 Altro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Telefono</label>
+                            <input type="tel" id="supplierPhone" class="form-input" 
+                                   placeholder="Es. 075-123-456">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Note</label>
+                            <textarea id="supplierNotes" class="form-input" rows="3" 
+                                      placeholder="Orari, condizioni speciali, ecc."></textarea>
+                        </div>
+                        <button type="submit" class="btn-full btn-success">✅ Aggiungi Fornitore</button>
+                        <button type="button" class="btn-full btn-cancel modal-close">❌ Annulla</button>
+                    </form>
+                `);
+
+                document.getElementById('addSupplierForm').addEventListener('submit', (e) => {
+                    this.handleAddSupplier(e);
+                });
+            }
+
+            openCreateOrderModal(supplierId = null) {
+                const supplier = supplierId ? this.suppliersData.find(s => s.id === supplierId) : null;
+                
+                this.showModal(`
+                    <div class="modal-header">
+                        <h3>📝 Nuovo Ordine</h3>
+                        <button class="close-btn" type="button">&times;</button>
+                    </div>
+                    <form id="createOrderForm">
+                        <div class="form-group">
+                            <label class="form-label">Fornitore *</label>
+                            <select id="orderSupplier" class="form-input" required>
+                                <option value="">Seleziona fornitore</option>
+                                ${this.suppliersData.map(s => 
+                                    `<option value="${s.id}" ${s.id === supplierId ? 'selected' : ''}>
+                                        ${s.nome} (${s.tipo})
+                                    </option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Prodotti da Ordinare</label>
+                            <div id="orderItemsContainer">
+                                <div class="order-item-input">
+                                    <input type="text" class="form-input item-product" 
+                                           placeholder="Nome prodotto" style="margin-bottom: 8px;">
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="number" class="form-input item-quantity" 
+                                               placeholder="Qta" min="1" style="width: 80px;">
+                                        <input type="text" class="form-input item-unit" 
+                                               placeholder="Unità" value="pz" style="width: 80px;">
+                                        <input type="number" class="form-input item-price" 
+                                               placeholder="Prezzo €" min="0" step="0.01" style="flex: 1;">
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-full btn-secondary" id="addOrderItemBtn">
+                                ➕ Aggiungi Prodotto
+                            </button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Note Ordine</label>
+                            <textarea id="orderNotes" class="form-input" rows="3" 
+                                      placeholder="Note speciali, urgenza, ecc."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn-full btn-success">📋 Crea Ordine</button>
+                        <button type="button" class="btn-full btn-cancel modal-close">❌ Annulla</button>
+                    </form>
+                `);
+
+                this.setupCreateOrderModal();
+            }
+
+            setupCreateOrderModal() {
+                // Add item button
+                document.getElementById('addOrderItemBtn').addEventListener('click', () => {
+                    const container = document.getElementById('orderItemsContainer');
+                    const newItem = document.createElement('div');
+                    newItem.className = 'order-item-input';
+                    newItem.innerHTML = `
+                        <input type="text" class="form-input item-product" 
+                               placeholder="Nome prodotto" style="margin-bottom: 8px;">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" class="form-input item-quantity" 
+                                   placeholder="Qta" min="1" style="width: 80px;">
+                            <input type="text" class="form-input item-unit" 
+                                   placeholder="Unità" value="pz" style="width: 80px;">
+                            <input type="number" class="form-input item-price" 
+                                   placeholder="Prezzo €" min="0" step="0.01" style="flex: 1;">
+                            <button type="button" class="btn-circle btn-danger remove-item-btn">×</button>
+                        </div>
+                    `;
+                    container.appendChild(newItem);
+                    
+                    // Add remove functionality
+                    newItem.querySelector('.remove-item-btn').addEventListener('click', () => {
+                        newItem.remove();
+                    });
+                });
+
+                // Form submission
+                document.getElementById('createOrderForm').addEventListener('submit', (e) => {
+                    this.handleCreateOrder(e);
+                });
+            }
+
+            handleAddSupplier(e) {
+                e.preventDefault();
+                
+                const newSupplier = {
+                    id: this.nextSupplierId++,
+                    nome: document.getElementById('supplierName').value.trim(),
+                    tipo: document.getElementById('supplierType').value,
+                    telefono: document.getElementById('supplierPhone').value.trim(),
+                    note: document.getElementById('supplierNotes').value.trim()
+                };
+
+                if (!newSupplier.nome || !newSupplier.tipo) {
+                    this.showToast('Compila i campi obbligatori', 'error');
+                    return;
+                }
+
+                // Check if supplier already exists
+                const exists = this.suppliersData.some(s => 
+                    s.nome.toLowerCase() === newSupplier.nome.toLowerCase()
+                );
+
+                if (exists) {
+                    this.showToast('Fornitore già esistente', 'error');
+                    return;
+                }
+
+                this.suppliersData.push(newSupplier);
+                this.saveOrdersData();
+                this.closeAllModals();
+                this.render();
+                this.showToast('Fornitore aggiunto con successo!', 'success');
+            }
+
+            handleCreateOrder(e) {
+                e.preventDefault();
+                
+                const fornitoreId = parseInt(document.getElementById('orderSupplier').value);
+                if (!fornitoreId) {
+                    this.showToast('Seleziona un fornitore', 'error');
+                    return;
+                }
+
+                // Collect order items
+                const items = [];
+                const itemInputs = document.querySelectorAll('.order-item-input');
+                
+                itemInputs.forEach(input => {
+                    const prodotto = input.querySelector('.item-product').value.trim();
+                    const quantita = parseInt(input.querySelector('.item-quantity').value) || 0;
+                    const unita = input.querySelector('.item-unit').value.trim() || 'pz';
+                    const prezzo = parseFloat(input.querySelector('.item-price').value) || 0;
+                    
+                    if (prodotto && quantita > 0) {
+                        items.push({
+                            prodotto,
+                            quantita,
+                            unita,
+                            prezzo
+                        });
+                    }
+                });
+
+                if (items.length === 0) {
+                    this.showToast('Aggiungi almeno un prodotto', 'error');
+                    return;
+                }
+
+                const newOrder = {
+                    id: this.nextOrderId++,
+                    fornitoreId,
+                    items,
+                    note: document.getElementById('orderNotes').value.trim(),
+                    dataCreazione: new Date().toISOString(),
+                    stato: 'pending'
+                };
+
+                this.ordersData.push(newOrder);
+                this.saveOrdersData();
+                this.closeAllModals();
+                this.render();
+                this.showToast(`Ordine #${newOrder.id} creato!`, 'success');
+            }
+
+            createQuickOrder() {
+                const supplierId = parseInt(document.getElementById('quickOrderSupplier').value);
+                if (!supplierId) {
+                    this.showToast('Seleziona un fornitore', 'error');
+                    return;
+                }
+
+                const items = [];
+                const qtyInputs = document.querySelectorAll('.quick-order-qty');
+                
+                qtyInputs.forEach(input => {
+                    const productId = parseInt(input.dataset.productId);
+                    const quantita = parseInt(input.value) || 0;
+                    
+                    if (quantita > 0) {
+                        const product = this.stockData.find(p => p.id === productId);
+                        if (product) {
+                            items.push({
+                                prodotto: product.prodotto,
+                                quantita,
+                                unita: 'pz',
+                                prezzo: product.prezzo
+                            });
+                        }
+                    }
+                });
+
+                if (items.length === 0) {
+                    this.showToast('Seleziona almeno un prodotto', 'error');
+                    return;
+                }
+
+                const newOrder = {
+                    id: this.nextOrderId++,
+                    fornitoreId: supplierId,
+                    items,
+                    note: 'Ordine rapido - Prodotti in esaurimento',
+                    dataCreazione: new Date().toISOString(),
+                    stato: 'pending'
+                };
+
+                this.ordersData.push(newOrder);
+                this.saveOrdersData();
+                this.render();
+                this.showToast(`Ordine rapido #${newOrder.id} creato!`, 'success');
+            }
+
+            viewOrder(orderId) {
+                const order = this.ordersData.find(o => o.id === orderId);
+                if (!order) return;
+
+                const supplier = this.suppliersData.find(s => s.id === order.fornitoreId);
+                const totalAmount = order.items.reduce((sum, item) => sum + (item.quantita * item.prezzo), 0);
+
+                this.showModal(`
+                    <div class="modal-header">
+                        <h3>👁️ Ordine #${order.id}</h3>
+                        <button class="close-btn" type="button">&times;</button>
+                    </div>
+                    <div class="order-details">
+                        <div class="detail-section">
+                            <h4>📋 Informazioni Ordine</h4>
+                            <div class="detail-item">
+                                <strong>Fornitore:</strong> ${supplier ? supplier.nome : 'Sconosciuto'}
+                            </div>
+                            <div class="detail-item">
+                                <strong>Data:</strong> ${new Date(order.dataCreazione).toLocaleDateString('it-IT')}
+                            </div>
+                            <div class="detail-item">
+                                <strong>Stato:</strong> 
+                                <span class="status-badge status-${order.stato}">
+                                    ${order.stato === 'pending' ? '⏳ Pendente' : '✅ Completato'}
+                                </span>
+                            </div>
+                            ${totalAmount > 0 ? `
+                                <div class="detail-item">
+                                    <strong>Totale:</strong> <span class="price-display">€${totalAmount.toFixed(2)}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="detail-section">
+                            <h4>📦 Prodotti (${order.items.length})</h4>
+                            <div class="order-items-list">
+                                ${order.items.map(item => `
+                                    <div class="order-item-detail">
+                                        <div class="item-info">
+                                            <strong>${item.prodotto}</strong>
+                                            <span class="item-qty">${item.quantita} ${item.unita}</span>
+                                        </div>
+                                        ${item.prezzo > 0 ? `
+                                            <div class="item-price">
+                                                €${item.prezzo.toFixed(2)} × ${item.quantita} = 
+                                                <strong>€${(item.prezzo * item.quantita).toFixed(2)}</strong>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        ${order.note ? `
+                            <div class="detail-section">
+                                <h4>📝 Note</h4>
+                                <div class="order-note-detail">${order.note}</div>
+                            </div>
+                        ` : ''}
+
+                        ${supplier && (supplier.telefono || supplier.note) ? `
+                            <div class="detail-section">
+                                <h4>📞 Contatti Fornitore</h4>
+                                ${supplier.telefono ? `<div class="detail-item">📞 ${supplier.telefono}</div>` : ''}
+                                ${supplier.note ? `<div class="detail-item">💡 ${supplier.note}</div>` : ''}
+                            </div>
+                        ` : ''}
+
+                        <div class="order-actions-modal">
+                            ${order.stato === 'pending' ? `
+                                <button class="btn-full btn-success" onclick="stockApp.completeOrder(${order.id}); stockApp.closeAllModals();">
+                                    ✅ Segna come Completato
+                                </button>
+                                <button class="btn-full btn-secondary" onclick="stockApp.editOrder(${order.id});">
+                                    ✏️ Modifica Ordine
+                                </button>
+                            ` : ''}
+                            <button class="btn-full btn-cancel modal-close">❌ Chiudi</button>
+                        </div>
+                    </div>
+                `);
+            }
+
+            completeOrder(orderId) {
+                const order = this.ordersData.find(o => o.id === orderId);
+                if (!order) return;
+
+                if (confirm(`Confermi di aver completato l'ordine #${orderId}?`)) {
+                    order.stato = 'completed';
+                    order.dataCompletamento = new Date().toISOString();
+                    
+                    this.saveOrdersData();
+                    this.render();
+                    this.showToast(`Ordine #${orderId} completato!`, 'success');
+                }
+            }
+
+            editOrder(orderId) {
+                const order = this.ordersData.find(o => o.id === orderId);
+                if (!order) return;
+
+                this.showModal(`
+                    <div class="modal-header">
+                        <h3>✏️ Modifica Ordine #${order.id}</h3>
+                        <button class="close-btn" type="button">&times;</button>
+                    </div>
+                    <form id="editOrderForm">
+                        <div class="form-group">
+                            <label class="form-label">Fornitore *</label>
+                            <select id="editOrderSupplier" class="form-input" required>
+                                ${this.suppliersData.map(s => 
+                                    `<option value="${s.id}" ${s.id === order.fornitoreId ? 'selected' : ''}>
+                                        ${s.nome} (${s.tipo})
+                                    </option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Prodotti</label>
+                            <div id="editOrderItemsContainer">
+                                ${order.items.map((item, index) => `
+                                    <div class="order-item-input" data-index="${index}">
+                                        <input type="text" class="form-input item-product" 
+                                               value="${this.escapeHtml(item.prodotto)}" 
+                                               placeholder="Nome prodotto" style="margin-bottom: 8px;">
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="number" class="form-input item-quantity" 
+                                                   value="${item.quantita}" placeholder="Qta" min="1" style="width: 80px;">
+                                            <input type="text" class="form-input item-unit" 
+                                                   value="${item.unita}" placeholder="Unità" style="width: 80px;">
+                                            <input type="number" class="form-input item-price" 
+                                                   value="${item.prezzo}" placeholder="Prezzo €" min="0" step="0.01" style="flex: 1;">
+                                            <button type="button" class="btn-circle btn-danger remove-item-btn">×</button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button type="button" class="btn-full btn-secondary" id="addEditOrderItemBtn">
+                                ➕ Aggiungi Prodotto
+                            </button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Note Ordine</label>
+                            <textarea id="editOrderNotes" class="form-input" rows="3">${order.note || ''}</textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn-full btn-success">💾 Salva Modifiche</button>
+                        <button type="button" class="btn-full btn-cancel modal-close">❌ Annulla</button>
+                    </form>
+                `);
+
+                this.setupEditOrderModal(orderId);
+            }
+
+            setupEditOrderModal(orderId) {
+                // Remove item functionality
+                document.querySelectorAll('.remove-item-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.target.closest('.order-item-input').remove();
+                    });
+                });
+
+                // Add item button
+                document.getElementById('addEditOrderItemBtn').addEventListener('click', () => {
+                    const container = document.getElementById('editOrderItemsContainer');
+                    const newItem = document.createElement('div');
+                    newItem.className = 'order-item-input';
+                    newItem.innerHTML = `
+                        <input type="text" class="form-input item-product" 
+                               placeholder="Nome prodotto" style="margin-bottom: 8px;">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" class="form-input item-quantity" 
+                                   placeholder="Qta" min="1" style="width: 80px;">
+                            <input type="text" class="form-input item-unit" 
+                                   placeholder="Unità" value="pz" style="width: 80px;">
+                            <input type="number" class="form-input item-price" 
+                                   placeholder="Prezzo €" min="0" step="0.01" style="flex: 1;">
+                            <button type="button" class="btn-circle btn-danger remove-item-btn">×</button>
+                        </div>
+                    `;
+                    container.appendChild(newItem);
+                    
+                    newItem.querySelector('.remove-item-btn').addEventListener('click', () => {
+                        newItem.remove();
+                    });
+                });
+
+                // Form submission
+                document.getElementById('editOrderForm').addEventListener('submit', (e) => {
+                    this.handleEditOrder(e, orderId);
+                });
+            }
+
+            handleEditOrder(e, orderId) {
+                e.preventDefault();
+                
+                const order = this.ordersData.find(o => o.id === orderId);
+                if (!order) return;
+
+                const fornitoreId = parseInt(document.getElementById('editOrderSupplier').value);
+                if (!fornitoreId) {
+                    this.showToast('Seleziona un fornitore', 'error');
+                    return;
+                }
+
+                // Collect updated items
+                const items = [];
+                const itemInputs = document.querySelectorAll('#editOrderItemsContainer .order-item-input');
+                
+                itemInputs.forEach(input => {
+                    const prodotto = input.querySelector('.item-product').value.trim();
+                    const quantita = parseInt(input.querySelector('.item-quantity').value) || 0;
+                    const unita = input.querySelector('.item-unit').value.trim() || 'pz';
+                    const prezzo = parseFloat(input.querySelector('.item-price').value) || 0;
+                    
+                    if (prodotto && quantita > 0) {
+                        items.push({
+                            prodotto,
+                            quantita,
+                            unita,
+                            prezzo
+                        });
+                    }
+                });
+
+                if (items.length === 0) {
+                    this.showToast('Mantieni almeno un prodotto', 'error');
+                    return;
+                }
+
+                // Update order
+                order.fornitoreId = fornitoreId;
+                order.items = items;
+                order.note = document.getElementById('editOrderNotes').value.trim();
+                order.dataModifica = new Date().toISOString();
+
+                this.saveOrdersData();
+                this.closeAllModals();
+                this.render();
+                this.showToast(`Ordine #${orderId} aggiornato!`, 'success');
+            }
+
+            deleteOrder(orderId) {
+                if (confirm(`Sei sicuro di voler eliminare l'ordine #${orderId}?\n\nQuesta azione non può essere annullata.`)) {
+                    this.ordersData = this.ordersData.filter(order => order.id !== orderId);
+                    this.saveOrdersData();
+                    this.render();
+                    this.showToast(`Ordine #${orderId} eliminato`, 'success');
+                }
+            }
+
+            openEditSupplierModal(supplierId) {
+                const supplier = this.suppliersData.find(s => s.id === supplierId);
+                if (!supplier) return;
+
+                this.showModal(`
+                    <div class="modal-header">
+                        <h3>✏️ Modifica Fornitore</h3>
+                        <button class="close-btn" type="button">&times;</button>
+                    </div>
+                    <form id="editSupplierForm">
+                        <div class="form-group">
+                            <label class="form-label">Nome Fornitore *</label>
+                            <input type="text" id="editSupplierName" class="form-input" required 
+                                   value="${this.escapeHtml(supplier.nome)}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tipo *</label>
+                            <select id="editSupplierType" class="form-input" required>
+                                <option value="Supermercato" ${supplier.tipo === 'Supermercato' ? 'selected' : ''}>🏪 Supermercato</option>
+                                <option value="Fornitore" ${supplier.tipo === 'Fornitore' ? 'selected' : ''}>🚚 Fornitore Specializzato</option>
+                                <option value="Cash & Carry" ${supplier.tipo === 'Cash & Carry' ? 'selected' : ''}>🏬 Cash & Carry</option>
+                                <option value="Mercato" ${supplier.tipo === 'Mercato' ? 'selected' : ''}>🥬 Mercato Locale</option>
+                                <option value="Altro" ${supplier.tipo === 'Altro' ? 'selected' : ''}>📦 Altro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Telefono</label>
+                            <input type="tel" id="editSupplierPhone" class="form-input" 
+                                   value="${supplier.telefono || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Note</label>
+                            <textarea id="editSupplierNotes" class="form-input" rows="3">${supplier.note || ''}</textarea>
+                        </div>
+                        <button type="submit" class="btn-full btn-success">💾 Salva Modifiche</button>
+                        <button type="button" class="btn-full btn-danger" id="deleteSupplierBtn">🗑️ Elimina Fornitore</button>
+                        <button type="button" class="btn-full btn-cancel modal-close">❌ Annulla</button>
+                    </form>
+                `);
+
+                document.getElementById('editSupplierForm').addEventListener('submit', (e) => {
+                    this.handleEditSupplier(e, supplierId);
+                });
+
+                document.getElementById('deleteSupplierBtn').addEventListener('click', () => {
+                    this.deleteSupplier(supplierId);
+                });
+            }
+
+            handleEditSupplier(e, supplierId) {
+                e.preventDefault();
+                
+                const supplier = this.suppliersData.find(s => s.id === supplierId);
+                if (!supplier) return;
+
+                const updatedSupplier = {
+                    ...supplier,
+                    nome: document.getElementById('editSupplierName').value.trim(),
+                    tipo: document.getElementById('editSupplierType').value,
+                    telefono: document.getElementById('editSupplierPhone').value.trim(),
+                    note: document.getElementById('editSupplierNotes').value.trim()
+                };
+
+                if (!updatedSupplier.nome || !updatedSupplier.tipo) {
+                    this.showToast('Compila i campi obbligatori', 'error');
+                    return;
+                }
+
+                // Check if name already exists (excluding current supplier)
+                const exists = this.suppliersData.some(s => 
+                    s.id !== supplierId && s.nome.toLowerCase() === updatedSupplier.nome.toLowerCase()
+                );
+
+                if (exists) {
+                    this.showToast('Nome fornitore già esistente', 'error');
+                    return;
+                }
+
+                // Update supplier
+                const index = this.suppliersData.findIndex(s => s.id === supplierId);
+                this.suppliersData[index] = updatedSupplier;
+
+                this.saveOrdersData();
+                this.closeAllModals();
+                this.render();
+                this.showToast('Fornitore aggiornato!', 'success');
+            }
+
+            deleteSupplier(supplierId) {
+                const supplier = this.suppliersData.find(s => s.id === supplierId);
+                if (!supplier) return;
+
+                // Check if supplier has orders
+                const hasOrders = this.ordersData.some(order => order.fornitoreId === supplierId);
+                
+                let confirmMessage = `Sei sicuro di voler eliminare "${supplier.nome}"?`;
+                if (hasOrders) {
+                    confirmMessage += '\n\n⚠️ ATTENZIONE: Questo fornitore ha degli ordini associati che verranno mantenuti ma risulteranno orfani.';
+                }
+
+                if (confirm(confirmMessage)) {
+                    this.suppliersData = this.suppliersData.filter(s => s.id !== supplierId);
+                    this.saveOrdersData();
+                    this.closeAllModals();
+                    this.render();
+                    this.showToast('Fornitore eliminato', 'success');
+                }
+            }
+
+            // ==================== VIEW MANAGEMENT ====================
+            switchView(view) {
+                // Update navigation
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelector(`[data-view="${view}"]`).classList.add('active');
+
+                // Update current view
+                this.currentView = view;
+
+                // Update FAB icon and function
+                const fab = document.getElementById('addProductFAB');
+                if (view === 'orders') {
+                    fab.innerHTML = '📝';
+                    fab.title = 'Nuovo ordine';
+                } else {
+                    fab.innerHTML = '+';
+                    fab.title = 'Aggiungi nuovo prodotto';
+                }
+
+                // Reset filters when switching views
+                if (view !== 'list') {
+                    this.currentFilter = '';
+                    this.searchTerm = '';
+                    document.getElementById('searchInput').value = '';
+                    document.querySelectorAll('.chip').forEach(chip => chip.classList.remove('active'));
+                    document.querySelector('[data-filter=""]').classList.add('active');
+                }
+
+                // Render appropriate view
+                switch (view) {
+                    case 'list':
+                        this.showListView();
+                        break;
+                    case 'categories':
+                        this.showCategoriesView();
+                        break;
+                    case 'alerts':
+                        this.showAlertsView();
+                        break;
+                    case 'orders':
+                        this.renderOrdersView();
+                        break;
+                    case 'export':
+                        this.showExportView();
+                        break;
+                }
+            }
+
+            // ==================== UTILITY FUNCTIONS ====================
+            getSupplierIcon(tipo) {
+                const icons = {
+                    'Supermercato': '🏪',
+                    'Fornitore': '🚚',
+                    'Cash & Carry': '🏬',
+                    'Mercato': '🥬',
+                    'Altro': '📦'
+                };
+                return icons[tipo] || '📦';
+            }
+
+            getFilteredData() {
+                let filtered = this.stockData;
+
+                // Apply search filter
+                if (this.searchTerm) {
+                    filtered = filtered.filter(product =>
+                        product.prodotto.toLowerCase().includes(this.searchTerm) ||
+                        product.categoria.toLowerCase().includes(this.searchTerm)
+                    );
+                }
+
+                // Apply category/status filter
+                if (this.currentFilter) {
+                    if (this.currentFilter === 'out' || this.currentFilter === 'low') {
+                        filtered = filtered.filter(product => 
+                            this.getProductStatus(product) === this.currentFilter
+                        );
+                    } else {
+                        filtered = filtered.filter(product => 
+                            product.categoria === this.currentFilter
+                        );
+                    }
+                }
+
+                return filtered.sort((a, b) => {
+                    // Sort by status (alerts first), then by name
+                    const statusA = this.getProductStatus(a);
+                    const statusB = this.getProductStatus(b);
+                    
+                    if (statusA !== statusB) {
+                        const statusOrder = { 'out': 0, 'low': 1, 'ok': 2 };
+                        return statusOrder[statusA] - statusOrder[statusB];
+                    }
+                    
+                    return a.prodotto.localeCompare(b.prodotto);
+                });
+            }
+
+            getProductStatus(product) {
+                if (product.stockAttuale <= 0) return 'out';
+                if (product.stockAttuale <= product.stockMinimo) return 'low';
+                return 'ok';
+            }
+
+            getStatusText(status) {
+                const texts = {
+                    'ok': '✅ OK',
+                    'low': '⚠️ Basso',
+                    'out': '❌ Esaurito'
+                };
+                return texts[status] || 'Sconosciuto';
+            }
+
+            getAlertSuggestion(product, status) {
+                if (status === 'out') {
+                    return `🔴 URGENTE: Riordinare immediatamente`;
+                } else if (status === 'low') {
+                    const needed = Math.max(product.stockMinimo * 2 - product.stockAttuale, 1);
+                    return `🟡 ATTENZIONE: Riordinare ${needed} unità`;
+                }
+                return '';
+            }
+
+            calculateStats() {
+                const total = this.stockData.length;
+                const out = this.stockData.filter(p => this.getProductStatus(p) === 'out').length;
+                const low = this.stockData.filter(p => this.getProductStatus(p) === 'low').length;
+                const value = this.stockData.reduce((sum, p) => sum + (p.stockAttuale * p.prezzo), 0);
+                
+                return { total, out, low, value };
+            }
+
+            updateStats() {
+                const stats = this.calculateStats();
+                document.getElementById('headerTotal').textContent = stats.total;
+                document.getElementById('headerAlerts').textContent = stats.out + stats.low;
+            }
+
+            updateFilterChips() {
+                const categories = [...new Set(this.stockData.map(p => p.categoria))];
+                const filterChips = document.getElementById('filterChips');
+                
+                // Keep existing chips and add new categories
+                const existingChips = Array.from(filterChips.children).map(chip => chip.dataset.filter);
+                
+                categories.forEach(category => {
+                    if (!existingChips.includes(category)) {
+                        const chip = document.createElement('div');
+                        chip.className = 'chip';
+                        chip.dataset.filter = category;
+                        chip.textContent = category;
+                        filterChips.appendChild(chip);
+                    }
+                });
+            }
+
+            // ==================== PRODUCT OPERATIONS ====================
+            handleProductClick(e) {
+                const productId = parseInt(e.target.dataset.productId);
+                if (!productId) return;
+
+                if (e.target.classList.contains('increase-btn')) {
+                    this.updateStock(productId, 1);
+                } else if (e.target.classList.contains('decrease-btn')) {
+                    this.updateStock(productId, -1);
+                }
+            }
+
+            updateStock(productId, change) {
+                const product = this.stockData.find(p => p.id === productId);
+                if (!product) return;
+
+                const newStock = Math.max(0, product.stockAttuale + change);
+                product.stockAttuale = newStock;
+
+                this.saveData();
+                this.render();
+
+                // Show feedback
+                const action = change > 0 ? 'aggiunto' : 'rimosso';
+                this.showToast(`${product.prodotto}: ${action} 1 unità`, 'success');
+            }
+
+            openAddProductModal() {
+                document.getElementById('addProductModal').classList.add('show');
+                document.getElementById('newProduct').focus();
+            }
+
+            closeAddProductModal() {
+                document.getElementById('addProductModal').classList.remove('show');
+                document.getElementById('addProductForm').reset();
+            }
+
+            handleAddProduct(e) {
+                e.preventDefault();
+
+                const newProduct = {
+                    id: this.nextId++,
+                    categoria: document.getElementById('newCategory').value,
+                    prodotto: document.getElementById('newProduct').value.trim(),
+                    stockAttuale: parseInt(document.getElementById('newStock').value) || 0,
+                    stockMinimo: parseInt(document.getElementById('newMinStock').value) || 1,
+                    prezzo: parseFloat(document.getElementById('newPrice').value) || 0
+                };
+
+                if (!newProduct.categoria || !newProduct.prodotto) {
+                    this.showToast('Compila i campi obbligatori', 'error');
+                    return;
+                }
+
+                // Check if product already exists
+                const exists = this.stockData.some(p => 
+                    p.prodotto.toLowerCase() === newProduct.prodotto.toLowerCase() &&
+                    p.categoria === newProduct.categoria
+                );
+
+                if (exists) {
+                    this.showToast('Prodotto già esistente', 'error');
+                    return;
+                }
+
+                this.stockData.push(newProduct);
+                this.saveData();
+                this.closeAddProductModal();
+                this.updateFilterChips();
+                this.render();
+                this.showToast('Prodotto aggiunto con successo!', 'success');
+            }
+
+            // ==================== MODAL MANAGEMENT ====================
+            showModal(content) {
+                // Create modal if it doesn't exist
+                let modal = document.getElementById('dynamicModal');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.id = 'dynamicModal';
+                    modal.className = 'modal';
+                    document.body.appendChild(modal);
+                }
+
+                modal.innerHTML = `<div class="modal-content">${content}</div>`;
+                modal.classList.add('show');
+
+                // Setup close functionality
+                modal.querySelectorAll('.close-btn, .modal-close').forEach(btn => {
+                    btn.addEventListener('click', () => this.closeModal(modal));
+                });
+
+                // Close on backdrop click
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        this.closeModal(modal);
+                    }
+                });
+            }
+
+            closeModal(modal) {
+                modal.classList.remove('show');
+                setTimeout(() => {
+                    if (modal.id === 'dynamicModal') {
+                        modal.remove();
+                    }
+                }, 300);
+            }
+
+            closeAllModals() {
+                document.querySelectorAll('.modal.show').forEach(modal => {
+                    this.closeModal(modal);
+                });
+            }
+
+            // ==================== OTHER VIEWS ====================
+            showListView() {
+                this.render();
+            }
+
+            showAlertsView() {
+                const alertProducts = this.stockData.filter(product => 
+                    this.getProductStatus(product) !== 'ok'
+                );
+                
+                this.currentFilter = '';
+                document.querySelectorAll('.chip').forEach(chip => chip.classList.remove('active'));
+                document.querySelector('[data-filter=""]').classList.add('active');
+                
+                const productList = document.getElementById('productList');
+                
+                if (alertProducts.length === 0) {
+                    productList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">✅</div>
+                            <h3>Tutto OK!</h3>
+                            <p>Non ci sono prodotti che richiedono attenzione</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                productList.innerHTML = alertProducts.map(product => 
+                    this.createProductCard(product)
+                ).join('');
+            }
+
+            showCategoriesView() {
+                const categories = this.groupByCategory();
+                const productList = document.getElementById('productList');
+                
+                productList.innerHTML = Object.entries(categories).map(([category, products]) => 
+                    this.createCategoryCard(category, products)
+                ).join('');
+            }
+
+            createCategoryCard(category, products) {
+                const totalStock = products.reduce((sum, p) => sum + p.stockAttuale, 0);
+                const totalValue = products.reduce((sum, p) => sum + (p.stockAttuale * p.prezzo), 0);
+                const alertCount = products.filter(p => this.getProductStatus(p) !== 'ok').length;
+                
+                const categoryIcons = {
+                    'Formaggi': '🧀', 'Verdure': '🥬', 'Carne': '🥩', 'Frutta': '🍎',
+                    'Pasta': '🍝', 'Salumi': '🥓', 'Dolci': '🍰', 'Condimenti': '🧂',
+                    'Latticini': '🥛', 'Erbe': '🌿', 'Pesce': '🐟', 'Bevande': '🥤',
+                    'Altro': '📦'
+                };
+
+                return `
+                    <div class="category-card" data-category="${category}">
+                        <div class="category-header">
+                            <h3>${categoryIcons[category] || '📦'} ${category}</h3>
+                            ${alertCount > 0 ? `<span class="alert-badge">${alertCount} avvisi</span>` : ''}
+                        </div>
+                        <div class="category-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Prodotti:</span>
+                                <span class="stat-value">${products.length}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Stock totale:</span>
+                                <span class="stat-value">${totalStock}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Valore:</span>
+                                <span class="stat-value">€${totalValue.toFixed(2)}</span>
+                            </div>
+                        </div>
+                        <div class="category-products">
+                            ${products.slice(0, 3).map(p => `
+                                <div class="mini-product">
+                                    <span>${p.prodotto}</span>
+                                    <span class="status-badge status-${this.getProductStatus(p)}">
+                                        ${p.stockAttuale}
+                                    </span>
+                                </div>
+                            `).join('')}
+                            ${products.length > 3 ? `<div class="more-products">+${products.length - 3} altri</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            showExportView() {
+                const stats = this.calculateStats();
+                const productList = document.getElementById('productList');
+                
+                productList.innerHTML = `
+                    <div class="export-card">
+                        <h3>📊 Statistiche Generali</h3>
+                        <div class="export-stats">
+                            <div class="export-stat">
+                                <div class="export-stat-number">${stats.total}</div>
+                                <div class="export-stat-label">Prodotti Totali</div>
+                            </div>
+                            <div class="export-stat">
+                                <div class="export-stat-number">${stats.low}</div>
+                                <div class="export-stat-label">Stock Bassi</div>
+                            </div>
+                            <div class="export-stat">
+                                <div class="export-stat-number">${stats.out}</div>
+                                <div class="export-stat-label">Esauriti</div>
+                            </div>
+                            <div class="export-stat">
+                                <div class="export-stat-number">€${stats.value.toFixed(2)}</div>
+                                <div class="export-stat-label">Valore Totale</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="export-card">
+                        <h3>📥 Esportazione Dati</h3>
+                        <button class="btn-full btn-success" id="exportCSVMobile">
+                            📊 Esporta CSV
+                        </button>
+                        <button class="btn-full btn-success" id="exportJSONMobile">
+                            💾 Backup JSON
+                        </button>
+                        <button class="btn-full btn-success" id="shareDataMobile">
+                            📤 Condividi Dati
+                        </button>
+                    </div>
+                    
+                    <div class="export-card">
+                        <h3>🔄 Gestione Dati</h3>
+                        <button class="btn-full btn-cancel" id="importDataMobile">
+                            📥 Importa Backup
+                        </button>
+                        <button class="btn-full btn-cancel" id="resetDataMobile">
+                            🗑️ Reset Completo
+                        </button>
+                    </div>
+                `;
+
+                this.setupExportListeners();
+            }
+
+            setupExportListeners() {
+                document.getElementById('exportCSVMobile')?.addEventListener('click', () => {
+                    this.exportToCSV();
+                });
+
+                document.getElementById('exportJSONMobile')?.addEventListener('click', () => {
+                    this.exportToJSON();
+                });
+
+                document.getElementById('shareDataMobile')?.addEventListener('click', () => {
+                    this.shareData();
+                });
+
+                document.getElementById('importDataMobile')?.addEventListener('click', () => {
+                    this.importData();
+                });
+
+                document.getElementById('resetDataMobile')?.addEventListener('click', () => {
+                    this.resetAllData();
+                });
+            }
+
+            // ==================== UTILITY FUNCTIONS ====================
+            groupByCategory() {
+                return this.stockData.reduce((groups, product) => {
+                    const category = product.categoria;
+                    if (!groups[category]) {
+                        groups[category] = [];
+                    }
+                    groups[category].push(product);
+                    return groups;
+                }, {});
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                
+                const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : '⚠️';
+                toast.innerHTML = `${icon} ${message}`;
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => toast.classList.add('show'), 100);
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+
+            showLoading() {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+            }
+
+            hideLoading() {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+
+            refreshData() {
+                this.showLoading();
+                setTimeout(() => {
+                    this.render();
+                    this.hideLoading();
+                    this.showToast('Dati aggiornati!', 'success');
+                }, 1000);
+            }
+
+            startAutoSave() {
+                setInterval(() => {
+                    this.saveData();
+                    this.saveOrdersData();
+                }, 30000);
+
+                window.addEventListener('beforeunload', () => {
+                    this.saveData();
+                    this.saveOrdersData();
+                });
+
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        this.saveData();
+                        this.saveOrdersData();
+                    }
+                });
+            }
+
+            // ==================== EXPORT FUNCTIONS ====================
+            exportToCSV() {
+                try {
+                    const headers = ['Categoria', 'Prodotto', 'Stock', 'Min Stock', 'Prezzo', 'Valore', 'Stato'];
+                    const rows = this.stockData.map(product => [
+                        product.categoria,
+                        product.prodotto,
+                        product.stockAttuale,
+                        product.stockMinimo,
+                        product.prezzo.toFixed(2),
+                        (product.stockAttuale * product.prezzo).toFixed(2),
+                        this.getStatusText(this.getProductStatus(product))
+                    ]);
+
+                    const csvContent = [headers, ...rows]
+                        .map(row => row.map(field => `"${field}"`).join(','))
+                        .join('\n');
+
+                    this.downloadFile(csvContent, 'stock-ristorante.csv', 'text/csv');
+                    this.showToast('CSV esportato con successo!', 'success');
+                } catch (error) {
+                    this.showToast('Errore nell\'esportazione CSV', 'error');
+                }
+            }
+
+            exportToJSON() {
+                try {
+                    const exportData = {
+                        stockData: this.stockData,
+                        ordersData: this.ordersData,
+                        suppliersData: this.suppliersData,
+                        exportDate: new Date().toISOString(),
+                        version: '1.0'
+                    };
+
+                    const jsonContent = JSON.stringify(exportData, null, 2);
+                    this.downloadFile(jsonContent, 'stock-backup.json', 'application/json');
+                    this.showToast('Backup JSON creato!', 'success');
+                } catch (error) {
+                    this.showToast('Errore nella creazione del backup', 'error');
+                }
+            }
+
+            downloadFile(content, filename, mimeType) {
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                
+                link.href = url;
+                link.download = filename;
+                link.style.display = 'none';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                URL.revokeObjectURL(url);
+            }
+
+            async shareData() {
+                if (navigator.share) {
+                    try {
+                        const stats = this.calculateStats();
+                        const pendingOrders = this.ordersData.filter(o => o.stato === 'pending').length;
+                        const shareText = `📦 Stock Ristorante\n\n` +
+                            `📊 Prodotti totali: ${stats.total}\n` +
+                            `⚠️ Stock bassi: ${stats.low}\n` +
+                            `❌ Esauriti: ${stats.out}\n` +
+                            `💰 Valore totale: €${stats.value.toFixed(2)}\n` +
+                            `📋 Ordini pendenti: ${pendingOrders}\n\n` +
+                            `Generato il ${new Date().toLocaleDateString('it-IT')}`;
+
+                        await navigator.share({
+                            title: 'Stock Ristorante',
+                            text: shareText
+                        });
+                        
+                        this.showToast('Dati condivisi!', 'success');
+                    } catch (error) {
+                        if (error.name !== 'AbortError') {
+                            this.showToast('Errore nella condivisione', 'error');
+                        }
+                    }
+                } else {
+                    this.copyStatsToClipboard();
+                }
+            }
+
+            async copyStatsToClipboard() {
+                try {
+                    const stats = this.calculateStats();
+                    const text = `Stock Ristorante - Totali: ${stats.total}, Bassi: ${stats.low}, Esauriti: ${stats.out}, Valore: €${stats.value.toFixed(2)}`;
+                    
+                    await navigator.clipboard.writeText(text);
+                    this.showToast('Statistiche copiate negli appunti!', 'success');
+                } catch (error) {
+                    this.showToast('Impossibile copiare negli appunti', 'error');
+                }
+            }
+
+            importData() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.style.display = 'none';
+                
+                input.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const importedData = JSON.parse(e.target.result);
+                            
+                            if (this.validateImportData(importedData)) {
+                                this.stockData = importedData.stockData || [];
+                                this.ordersData = importedData.ordersData || [];
+                                this.suppliersData = importedData.suppliersData || [];
+                                this.nextId = Math.max(...this.stockData.map(p => p.id), 0) + 1;
+                                this.nextOrderId = Math.max(...this.ordersData.map(o => o.id), 0) + 1;
+                                this.nextSupplierId = Math.max(...this.suppliersData.map(s => s.id), 0) + 1;
+                                
+                                this.saveData();
+                                this.saveOrdersData();
+                                this.render();
+                                this.showToast('Dati importati con successo!', 'success');
+                            } else {
+                                this.showToast('File di backup non valido', 'error');
+                            }
+                        } catch (error) {
+                            this.showToast('Errore nella lettura del file', 'error');
+                        }
+                    };
+                    
+                    reader.readAsText(file);
+                });
+                
+                document.body.appendChild(input);
+                input.click();
+                document.body.removeChild(input);
+            }
+
+            validateImportData(data) {
+                return data && 
+                       Array.isArray(data.stockData) &&
+                       data.stockData.every(item => 
+                           item.id && item.categoria && item.prodotto &&
+                           typeof item.stockAttuale === 'number' &&
+                           typeof item.stockMinimo === 'number' &&
+                           typeof item.prezzo === 'number'
+                       );
+            }
+
+            resetAllData() {
+                if (confirm('⚠️ ATTENZIONE!\n\nQuesto cancellerà TUTTI i dati in modo permanente.\n\nSei sicuro di voler continuare?')) {
+                    if (confirm('🚨 ULTIMA CONFERMA\n\nTutti i prodotti, ordini e fornitori verranno persi.\n\nConfermi il reset completo?')) {
+                        this.stockData = [];
+                        this.ordersData = [];
+                        this.suppliersData = [];
+                        this.nextId = 1;
+                        this.nextOrderId = 1;
+                        this.nextSupplierId = 1;
+                        localStorage.removeItem('mobileStockData');
+                        localStorage.removeItem('mobileOrdersData');
+                        this.loadDefaultData();
+                        this.render();
+                        this.showToast('Dati resettati completamente', 'success');
+                    }
+                }
+            }
+            showInstallPrompt(deferredPrompt) {
+                setTimeout(() => {
+                    const installBanner = document.createElement('div');
+                    installBanner.innerHTML = `
+                        <div style="position: fixed; bottom: 90px; left: 20px; right: 20px; 
+                                    background: linear-gradient(135deg, #667eea, #764ba2); 
+                                    color: white; padding: 15px; border-radius: 12px; 
+                                    box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 9999;
+                                    display: flex; align-items: center; gap: 10px;
+                                    animation: slideUp 0.3s ease;">
+                            <div style="flex: 1;">
+                                <strong>📱 Installa Stock Ristorante</strong>
+                                <div style="font-size: 0.9em; opacity: 0.9;">Accesso rapido dalla home screen</div>
+                            </div>
+                            <button onclick="stockApp.installPWA()" style="background: white; color: #667eea; 
+                                    border: none; padding: 8px 16px; border-radius: 20px; 
+                                    font-weight: bold; cursor: pointer;">Installa</button>
+                            <button onclick="this.parentElement.remove()" 
+                                    style="background: none; border: none; color: white; 
+                                    font-size: 20px; cursor: pointer;">×</button>
+                        </div>
+                    `;
+                    document.body.appendChild(installBanner);
+                    
+                    this.deferredPrompt = deferredPrompt;
+                }, 3000);
+            }
+
+            installPWA() {
+                if (this.deferredPrompt) {
+                    this.deferredPrompt.prompt();
+                    this.deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            this.showToast('App installata con successo!', 'success');
+                        }
+                        this.deferredPrompt = null;
+                        document.querySelector('[style*="position: fixed"]')?.remove();
+                    });
+                }
+            }
+
+            // ==================== ADVANCED FEATURES ====================
+            
+            // Auto-suggest products based on category
+            setupProductSuggestions() {
+                const productInput = document.getElementById('newProduct');
+                const categorySelect = document.getElementById('newCategory');
+                
+                const suggestions = {
+                    'Formaggi': ['Mozzarella di Bufala', 'Parmigiano Reggiano', 'Gorgonzola', 'Pecorino Romano', 'Ricotta'],
+                    'Verdure': ['Lattuga Romana', 'Pomodori San Marzano', 'Basilico', 'Zucchine', 'Melanzane'],
+                    'Carne': ['Bistecca di Manzo', 'Pollo Ruspante', 'Agnello', 'Salsiccia', 'Prosciutto'],
+                    'Pasta': ['Spaghetti', 'Penne', 'Fusilli', 'Strangozzi', 'Tagliatelle'],
+                    'Pesce': ['Salmone Fresco', 'Branzino', 'Orata', 'Tonno', 'Gamberi'],
+                    'Condimenti': ['Olio EVO', 'Aceto Balsamico', 'Sale Marino', 'Pepe Nero', 'Origano']
+                };
+
+                categorySelect?.addEventListener('change', (e) => {
+                    const category = e.target.value;
+                    if (suggestions[category] && productInput) {
+                        productInput.setAttribute('list', 'productSuggestions');
+                        
+                        let datalist = document.getElementById('productSuggestions');
+                        if (!datalist) {
+                            datalist = document.createElement('datalist');
+                            datalist.id = 'productSuggestions';
+                            document.body.appendChild(datalist);
+                        }
+                        
+                        datalist.innerHTML = suggestions[category]
+                            .map(item => `<option value="${item}">`)
+                            .join('');
+                    }
+                });
+            }
+
+            // Smart stock predictions
+            predictStockNeeds() {
+                const predictions = this.stockData.map(product => {
+                    const status = this.getProductStatus(product);
+                    let priority = 0;
+                    let suggestion = '';
+                    
+                    if (status === 'out') {
+                        priority = 3;
+                        suggestion = 'URGENTE: Riordinare immediatamente';
+                    } else if (status === 'low') {
+                        priority = 2;
+                        const needed = Math.max(product.stockMinimo * 2 - product.stockAttuale, 1);
+                        suggestion = `Riordinare ${needed} unità entro 3 giorni`;
+                    } else if (product.stockAttuale <= product.stockMinimo * 1.5) {
+                        priority = 1;
+                        suggestion = 'Monitorare nei prossimi giorni';
+                    }
+                    
+                    return { ...product, priority, suggestion };
+                }).filter(p => p.priority > 0)
+                  .sort((a, b) => b.priority - a.priority);
+
+                return predictions;
+            }
+
+            // Generate shopping list
+            generateShoppingList() {
+                const predictions = this.predictStockNeeds();
+                const groupedBySupplier = {};
+                
+                // Group products by potential suppliers based on category
+                const supplierMapping = {
+                    'Formaggi': 'Caseificio',
+                    'Latticini': 'Caseificio',
+                    'Carne': 'Macelleria',
+                    'Pesce': 'Pescheria',
+                    'Verdure': 'Mercato',
+                    'Frutta': 'Mercato'
+                };
+
+                predictions.forEach(product => {
+                    const supplierType = supplierMapping[product.categoria] || 'Supermercato';
+                    if (!groupedBySupplier[supplierType]) {
+                        groupedBySupplier[supplierType] = [];
+                    }
+                    groupedBySupplier[supplierType].push(product);
+                });
+
+                return groupedBySupplier;
+            }
+
+            // Enhanced search with fuzzy matching
+            fuzzySearch(term, products) {
+                if (!term) return products;
+                
+                const searchTerm = term.toLowerCase();
+                return products.filter(product => {
+                    const productName = product.prodotto.toLowerCase();
+                    const category = product.categoria.toLowerCase();
+                    
+                    // Exact match
+                    if (productName.includes(searchTerm) || category.includes(searchTerm)) {
+                        return true;
+                    }
+                    
+                    // Fuzzy match (simple implementation)
+                    const words = searchTerm.split(' ');
+                    return words.some(word => 
+                        productName.includes(word) || category.includes(word)
+                    );
+                });
+            }
+
+            // Inventory value tracking
+            trackInventoryValue() {
+                const currentValue = this.stockData.reduce((sum, p) => sum + (p.stockAttuale * p.prezzo), 0);
+                const lowStockValue = this.stockData
+                    .filter(p => this.getProductStatus(p) !== 'ok')
+                    .reduce((sum, p) => sum + (p.stockAttuale * p.prezzo), 0);
+                
+                return {
+                    total: currentValue,
+                    lowStock: lowStockValue,
+                    percentage: currentValue > 0 ? (lowStockValue / currentValue) * 100 : 0
+                };
+            }
+
+            // Batch operations
+            batchUpdateStock(updates) {
+                let updatedCount = 0;
+                
+                updates.forEach(update => {
+                    const product = this.stockData.find(p => p.id === update.id);
+                    if (product) {
+                        if (update.stock !== undefined) {
+                            product.stockAttuale = Math.max(0, update.stock);
+                            updatedCount++;
+                        }
+                        if (update.price !== undefined) {
+                            product.prezzo = Math.max(0, update.price);
+                        }
+                        if (update.minStock !== undefined) {
+                            product.stockMinimo = Math.max(0, update.minStock);
+                        }
+                    }
+                });
+
+                if (updatedCount > 0) {
+                    this.saveData();
+                    this.render();
+                    this.showToast(`${updatedCount} prodotti aggiornati`, 'success');
+                }
+
+                return updatedCount;
+            }
+
+            // Quick actions for common operations
+            quickActions = {
+                markAllAsReceived: (orderId) => {
+                    const order = this.ordersData.find(o => o.id === orderId);
+                    if (!order || order.stato !== 'pending') return;
+
+                    const updates = [];
+                    order.items.forEach(item => {
+                        const product = this.stockData.find(p => 
+                            p.prodotto.toLowerCase() === item.prodotto.toLowerCase()
+                        );
+                        if (product) {
+                            updates.push({
+                                id: product.id,
+                                stock: product.stockAttuale + item.quantita
+                            });
+                        }
+                    });
+
+                    if (updates.length > 0) {
+                        this.batchUpdateStock(updates);
+                        this.completeOrder(orderId);
+                        this.showToast(`Stock aggiornato per ${updates.length} prodotti`, 'success');
+                    }
+                },
+
+                duplicateOrder: (orderId) => {
+                    const order = this.ordersData.find(o => o.id === orderId);
+                    if (!order) return;
+
+                    const newOrder = {
+                        ...order,
+                        id: this.nextOrderId++,
+                        dataCreazione: new Date().toISOString(),
+                        stato: 'pending',
+                        note: `${order.note || ''} (Duplicato da ordine #${orderId})`.trim()
+                    };
+
+                    this.ordersData.push(newOrder);
+                    this.saveOrdersData();
+                    this.render();
+                    this.showToast(`Ordine #${newOrder.id} duplicato!`, 'success');
+                },
+
+                createOrderFromLowStock: () => {
+                    const lowStockProducts = this.stockData.filter(p => 
+                        this.getProductStatus(p) !== 'ok'
+                    );
+
+                    if (lowStockProducts.length === 0) {
+                        this.showToast('Nessun prodotto con stock basso', 'warning');
+                        return;
+                    }
+
+                    this.openCreateOrderModal();
+                    
+                    // Pre-fill with low stock products
+                    setTimeout(() => {
+                        const container = document.getElementById('orderItemsContainer');
+                        if (container) {
+                            container.innerHTML = lowStockProducts.slice(0, 5).map(product => {
+                                const suggestedQty = Math.max(product.stockMinimo * 2 - product.stockAttuale, 1);
+                                return `
+                                    <div class="order-item-input">
+                                        <input type="text" class="form-input item-product" 
+                                               value="${this.escapeHtml(product.prodotto)}" 
+                                               style="margin-bottom: 8px;">
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="number" class="form-input item-quantity" 
+                                                   value="${suggestedQty}" min="1" style="width: 80px;">
+                                            <input type="text" class="form-input item-unit" 
+                                                   value="pz" style="width: 80px;">
+                                            <input type="number" class="form-input item-price" 
+                                                   value="${product.prezzo}" min="0" step="0.01" style="flex: 1;">
+                                            <button type="button" class="btn-circle btn-danger remove-item-btn">×</button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('');
+
+                            // Setup remove buttons
+                            container.querySelectorAll('.remove-item-btn').forEach(btn => {
+                                btn.addEventListener('click', (e) => {
+                                    e.target.closest('.order-item-input').remove();
+                                });
+                            });
+                        }
+                    }, 100);
+                }
+            };
+
+            // Enhanced order management
+            getOrderStatistics() {
+                const stats = {
+                    total: this.ordersData.length,
+                    pending: this.ordersData.filter(o => o.stato === 'pending').length,
+                    completed: this.ordersData.filter(o => o.stato === 'completed').length,
+                    totalValue: 0,
+                    averageOrderValue: 0,
+                    topSuppliers: {},
+                    monthlyOrders: {}
+                };
+
+                this.ordersData.forEach(order => {
+                    // Calculate total value
+                    const orderValue = order.items ? order.items.reduce((sum, item) => 
+                        sum + (item.quantita * item.prezzo), 0) : 0;
+                    stats.totalValue += orderValue;
+
+                    // Track suppliers
+                    const supplier = this.suppliersData.find(s => s.id === order.fornitoreId);
+                    const supplierName = supplier ? supplier.nome : 'Sconosciuto';
+                    stats.topSuppliers[supplierName] = (stats.topSuppliers[supplierName] || 0) + 1;
+
+                    // Track monthly orders
+                    const month = new Date(order.dataCreazione).toISOString().slice(0, 7);
+                    stats.monthlyOrders[month] = (stats.monthlyOrders[month] || 0) + 1;
+                });
+
+                stats.averageOrderValue = stats.total > 0 ? stats.totalValue / stats.total : 0;
+
+                return stats;
+            }
+
+            // Advanced filtering and sorting
+            applySorting(products, sortBy = 'name', direction = 'asc') {
+                const sorted = [...products].sort((a, b) => {
+                    let valueA, valueB;
+
+                    switch (sortBy) {
+                        case 'name':
+                            valueA = a.prodotto.toLowerCase();
+                            valueB = b.prodotto.toLowerCase();
+                            break;
+                        case 'category':
+                            valueA = a.categoria.toLowerCase();
+                            valueB = b.categoria.toLowerCase();
+                            break;
+                        case 'stock':
+                            valueA = a.stockAttuale;
+                            valueB = b.stockAttuale;
+                            break;
+                        case 'price':
+                            valueA = a.prezzo;
+                            valueB = b.prezzo;
+                            break;
+                        case 'value':
+                            valueA = a.stockAttuale * a.prezzo;
+                            valueB = b.stockAttuale * b.prezzo;
+                            break;
+                        case 'status':
+                            const statusOrder = { 'out': 0, 'low': 1, 'ok': 2 };
+                            valueA = statusOrder[this.getProductStatus(a)];
+                            valueB = statusOrder[this.getProductStatus(b)];
+                            break;
+                        default:
+                            valueA = a.prodotto.toLowerCase();
+                            valueB = b.prodotto.toLowerCase();
+                    }
+
+                    if (typeof valueA === 'string') {
+                        return direction === 'asc' ? 
+                            valueA.localeCompare(valueB) : 
+                            valueB.localeCompare(valueA);
+                    } else {
+                        return direction === 'asc' ? 
+                            valueA - valueB : 
+                            valueB - valueA;
+                    }
+                });
+
+                return sorted;
+            }
+
+            // Enhanced search with sorting options
+            setupAdvancedSearch() {
+                const searchCard = document.querySelector('.search-card');
+                if (!searchCard) return;
+
+                // Add sorting controls
+                const sortingControls = document.createElement('div');
+                sortingControls.className = 'sorting-controls';
+                sortingControls.style.cssText = `
+                    display: flex; 
+                    gap: 8px; 
+                    margin-top: 10px; 
+                    align-items: center;
+                    font-size: 0.8em;
+                `;
+
+                sortingControls.innerHTML = `
+                    <span style="color: #666;">Ordina per:</span>
+                    <select id="sortBy" class="sort-select" style="
+                        padding: 4px 8px; 
+                        border: 1px solid #ddd; 
+                        border-radius: 6px; 
+                        background: white;
+                        font-size: 0.8em;
+                    ">
+                        <option value="name">Nome</option>
+                        <option value="category">Categoria</option>
+                        <option value="stock">Stock</option>
+                        <option value="price">Prezzo</option>
+                        <option value="value">Valore</option>
+                        <option value="status">Stato</option>
+                    </select>
+                    <button id="sortDirection" class="btn-circle" style="
+                        width: 24px; 
+                        height: 24px; 
+                        font-size: 12px;
+                        background: #f8f9fa;
+                        border: 1px solid #ddd;
+                    " title="Cambia direzione">↑</button>
+                `;
+
+                searchCard.appendChild(sortingControls);
+
+                // Setup sorting event listeners
+                let sortDirection = 'asc';
+                
+                document.getElementById('sortBy').addEventListener('change', () => {
+                    this.render();
+                });
+
+                document.getElementById('sortDirection').addEventListener('click', (e) => {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                    e.target.textContent = sortDirection === 'asc' ? '↑' : '↓';
+                    e.target.title = sortDirection === 'asc' ? 'Crescente' : 'Decrescente';
+                    this.render();
+                });
+
+                // Override getFilteredData to include sorting
+                const originalGetFilteredData = this.getFilteredData.bind(this);
+                this.getFilteredData = () => {
+                    let filtered = originalGetFilteredData();
+                    
+                    const sortBy = document.getElementById('sortBy')?.value || 'name';
+                    filtered = this.applySorting(filtered, sortBy, sortDirection);
+                    
+                    return filtered;
+                };
+            }
+
+            // Backup and sync functionality
+            setupCloudSync() {
+                // Simple cloud sync using localStorage backup
+                const syncData = {
+                    lastSync: localStorage.getItem('lastSync'),
+                    autoSync: localStorage.getItem('autoSync') === 'true'
+                };
+
+                // Auto-backup every hour if enabled
+                if (syncData.autoSync) {
+                    setInterval(() => {
+                        this.createAutoBackup();
+                    }, 3600000); // 1 hour
+                }
+
+                return syncData;
+            }
+
+            createAutoBackup() {
+                try {
+                    const backupData = {
+                        stockData: this.stockData,
+                        ordersData: this.ordersData,
+                        suppliersData: this.suppliersData,
+                        timestamp: new Date().toISOString(),
+                        version: '1.0'
+                    };
+
+                    const backupKey = `backup_${new Date().toISOString().slice(0, 10)}`;
+                    localStorage.setItem(backupKey, JSON.stringify(backupData));
+                    localStorage.setItem('lastSync', new Date().toISOString());
+
+                    // Keep only last 7 days of backups
+                    this.cleanOldBackups();
+                    
+                    console.log('Auto-backup created successfully');
+                } catch (error) {
+                    console.error('Auto-backup failed:', error);
+                }
+            }
+
+            cleanOldBackups() {
+                const keys = Object.keys(localStorage).filter(key => key.startsWith('backup_'));
+                const cutoffDate = new Date();
+                cutoffDate.setDate(cutoffDate.getDate() - 7);
+
+                keys.forEach(key => {
+                    const dateStr = key.replace('backup_', '');
+                    const backupDate = new Date(dateStr);
+                    if (backupDate < cutoffDate) {
+                        localStorage.removeItem(key);
+                    }
+                });
+            }
+
+            // Performance monitoring
+            performanceMonitor = {
+                renderTimes: [],
+                
+                startRender: () => {
+                    this.renderStartTime = performance.now();
+                },
+                
+                endRender: () => {
+                    if (this.renderStartTime) {
+                        const renderTime = performance.now() - this.renderStartTime;
+                        this.performanceMonitor.renderTimes.push(renderTime);
+                        
+                        // Keep only last 10 render times
+                        if (this.performanceMonitor.renderTimes.length > 10) {
+                            this.performanceMonitor.renderTimes.shift();
+                        }
+                        
+                        // Log slow renders
+                        if (renderTime > 100) {
+                            console.warn(`Slow render detected: ${renderTime.toFixed(2)}ms`);
+                        }
+                    }
+                },
+                
+                getAverageRenderTime: () => {
+                    const times = this.performanceMonitor.renderTimes;
+                    return times.length > 0 ? 
+                        times.reduce((sum, time) => sum + time, 0) / times.length : 0;
+                }
+            };
+
+            // Enhanced render with performance monitoring
+            renderWithPerformance() {
+                this.performanceMonitor.startRender();
+                
+                // Use requestAnimationFrame for smooth rendering
+                requestAnimationFrame(() => {
+                    this.render();
+                    this.performanceMonitor.endRender();
+                });
+            }
+
+            // Accessibility improvements
+            setupAccessibility() {
+                // Add ARIA labels
+                document.querySelectorAll('.btn-circle').forEach(btn => {
+                    if (!btn.getAttribute('aria-label')) {
+                        const text = btn.textContent.trim();
+                        if (text === '+') btn.setAttribute('aria-label', 'Aumenta stock');
+                        if (text === '−') btn.setAttribute('aria-label', 'Diminuisci stock');
+                        if (text === '×') btn.setAttribute('aria-label', 'Rimuovi elemento');
+                    }
+                });
+
+                // Add keyboard navigation
+                document.addEventListener('keydown', (e) => {
+                    // Ctrl/Cmd + K for search
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                        e.preventDefault();
+                        document.getElementById('searchInput').focus();
+                    }
+                    
+                    // Ctrl/Cmd + N for new product
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                        e.preventDefault();
+                        if (this.currentView === 'orders') {
+                            this.openNewOrderModal();
+                        } else {
+                            this.openAddProductModal();
+                        }
+                    }
+                    
+                    // Escape to close modals
+                    if (e.key === 'Escape') {
+                        this.closeAllModals();
+                    }
+                });
+
+                // Add focus management for modals
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                            const modal = mutation.target;
+                            if (modal.classList.contains('show')) {
+                                // Focus first input in modal
+                                const firstInput = modal.querySelector('input, select, textarea');
+                                if (firstInput) {
+                                    setTimeout(() => firstInput.focus(), 100);
+                                }
+                            }
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.modal').forEach(modal => {
+                    observer.observe(modal, { attributes: true });
+                });
+            }
+
+            // Offline support
+            setupOfflineSupport() {
+                // Check online status
+                const updateOnlineStatus = () => {
+                    const isOnline = navigator.onLine;
+                    const indicator = document.getElementById('offlineIndicator');
+                    
+                    if (!isOnline && !indicator) {
+                        const offlineDiv = document.createElement('div');
+                        offlineDiv.id = 'offlineIndicator';
+                        offlineDiv.style.cssText = `
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            background: #dc3545;
+                            color: white;
+                            text-align: center;
+                            padding: 8px;
+                            font-size: 0.9em;
+                            z-index: 10000;
+                        `;
+                        offlineDiv.textContent = '📡 Modalità offline - I dati vengono salvati localmente';
+                        document.body.appendChild(offlineDiv);
+                    } else if (isOnline && indicator) {
+                        indicator.remove();
+                        this.showToast('Connessione ripristinata!', 'success');
+                    }
+                };
+
+                window.addEventListener('online', updateOnlineStatus);
+                window.addEventListener('offline', updateOnlineStatus);
+                updateOnlineStatus();
+            }
+
+            // Advanced analytics
+            getAdvancedAnalytics() {
+                const analytics = {
+                    inventory: {
+                        totalProducts: this.stockData.length,
+                        totalValue: this.stockData.reduce((sum, p) => sum + (p.stockAttuale * p.prezzo), 0),
+                        averagePrice: 0,
+                        mostExpensive: null,
+                        leastExpensive: null,
+                        categoryDistribution: {},
+                        stockDistribution: { low: 0, medium: 0, high: 0 }
+                    },
+                    orders: {
+                        totalOrders: this.ordersData.length,
+                        pendingOrders: this.ordersData.filter(o => o.stato === 'pending').length,
+                        completedOrders: this.ordersData.filter(o => o.stato === 'completed').length,
+                        totalOrderValue: 0,
+                        averageOrderValue: 0,
+                        topSuppliers: [],
+                        orderFrequency: {}
+                    },
+                    trends: {
+                        stockTrends: this.calculateStockTrends(),
+                        orderTrends: this.calculateOrderTrends(),
+                        predictions: this.generatePredictions()
+                    }
+                };
+
+                // Calculate inventory analytics
+                if (this.stockData.length > 0) {
+                    analytics.inventory.averagePrice = analytics.inventory.totalValue / 
+                        this.stockData.reduce((sum, p) => sum + p.stockAttuale, 0);
+                    
+                    analytics.inventory.mostExpensive = this.stockData.reduce((max, p) => 
+                        p.prezzo > max.prezzo ? p : max);
+                    
+                    analytics.inventory.leastExpensive = this.stockData.reduce((min, p) => 
+                        p.prezzo < min.prezzo ? p : min);
+
+                    // Category distribution
+                    this.stockData.forEach(product => {
+                        analytics.inventory.categoryDistribution[product.categoria] = 
+                            (analytics.inventory.categoryDistribution[product.categoria] || 0) + 1;
+                    });
+
+                    // Stock distribution
+                    this.stockData.forEach(product => {
+                        if (product.stockAttuale <= product.stockMinimo) {
+                            analytics.inventory.stockDistribution.low++;
+                        } else if (product.stockAttuale <= product.stockMinimo * 3) {
+                            analytics.inventory.stockDistribution.medium++;
+                        } else {
+                            analytics.inventory.stockDistribution.high++;
+                        }
+                    });
+                }
+
+                // Calculate order analytics
+                this.ordersData.forEach(order => {
+                    const orderValue = order.items ? order.items.reduce((sum, item) => 
+                        sum + (item.quantita * item.prezzo), 0) : 0;
+                    analytics.orders.totalOrderValue += orderValue;
+
+                    // Supplier frequency
+                    const supplier = this.suppliersData.find(s => s.id === order.fornitoreId);
+                    const supplierName = supplier ? supplier.nome : 'Sconosciuto';
+                    analytics.orders.orderFrequency[supplierName] = 
+                        (analytics.orders.orderFrequency[supplierName] || 0) + 1;
+                });
+
+                if (analytics.orders.totalOrders > 0) {
+                    analytics.orders.averageOrderValue = 
+                        analytics.orders.totalOrderValue / analytics.orders.totalOrders;
+                }
+
+                // Top suppliers
+                analytics.orders.topSuppliers = Object.entries(analytics.orders.orderFrequency)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 5)
+                    .map(([name, count]) => ({ name, count }));
+
+                return analytics;
+            }
+
+            calculateStockTrends() {
+                // Simple trend calculation based on current stock levels
+                const trends = {};
+                
+                this.stockData.forEach(product => {
+                    const status = this.getProductStatus(product);
+                    const trend = status === 'out' ? 'decreasing' : 
+                                 status === 'low' ? 'stable' : 'increasing';
+                    
+                    trends[product.categoria] = trends[product.categoria] || {};
+                    trends[product.categoria][trend] = 
+                        (trends[product.categoria][trend] || 0) + 1;
+                });
+
+                return trends;
+            }
+
+            calculateOrderTrends() {
+                const trends = {
+                    monthly: {},
+                    weekly: {},
+                    bySupplier: {}
+                };
+
+                this.ordersData.forEach(order => {
+                    const date = new Date(order.dataCreazione);
+                    const month = date.toISOString().slice(0, 7);
+                    const week = this.getWeekNumber(date);
+                    
+                    trends.monthly[month] = (trends.monthly[month] || 0) + 1;
+                    trends.weekly[week] = (trends.weekly[week] || 0) + 1;
+                    
+                    const supplier = this.suppliersData.find(s => s.id === order.fornitoreId);
+                    const supplierName = supplier ? supplier.nome : 'Sconosciuto';
+                    trends.bySupplier[supplierName] = (trends.bySupplier[supplierName] || 0) + 1;
+                });
+
+                return trends;
+            }
+
+            generatePredictions() {
+                const predictions = {
+                    stockAlerts: [],
+                    orderSuggestions: [],
+                    costOptimization: []
+                };
+
+                // Stock alert predictions
+                this.stockData.forEach(product => {
+                    const daysUntilEmpty = this.calculateDaysUntilEmpty(product);
+                    if (daysUntilEmpty <= 7 && daysUntilEmpty > 0) {
+                        predictions.stockAlerts.push({
+                            product: product.prodotto,
+                            category: product.categoria,
+                            daysLeft: daysUntilEmpty,
+                            priority: daysUntilEmpty <= 3 ? 'high' : 'medium'
+                        });
+                    }
+                });
+
+                // Order suggestions based on patterns
+                const lowStockProducts = this.stockData.filter(p => 
+                    this.getProductStatus(p) !== 'ok'
+                );
+
+                if (lowStockProducts.length > 0) {
+                    predictions.orderSuggestions = lowStockProducts.map(product => ({
+                        product: product.prodotto,
+                        category: product.categoria,
+                        suggestedQuantity: Math.max(product.stockMinimo * 2 - product.stockAttuale, 1),
+                        estimatedCost: product.prezzo * Math.max(product.stockMinimo * 2 - product.stockAttuale, 1)
+                    }));
+                }
+
+                // Cost optimization suggestions
+                const expensiveProducts = this.stockData
+                    .filter(p => p.prezzo > 20)
+                    .sort((a, b) => b.prezzo - a.prezzo)
+                    .slice(0, 5);
+
+                predictions.costOptimization = expensiveProducts.map(product => ({
+                    product: product.prodotto,
+                    currentPrice: product.prezzo,
+                    suggestion: 'Considera fornitori alternativi per questo prodotto costoso'
+                }));
+
+                return predictions;
+            }
+
+            calculateDaysUntilEmpty(product) {
+                // Simple calculation based on average usage (mock data)
+                const averageDailyUsage = Math.max(1, product.stockMinimo / 7);
+                return Math.floor(product.stockAttuale / averageDailyUsage);
+            }
+
+            getWeekNumber(date) {
+                const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+                const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+                return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+            }
+
+            // Print functionality
+            setupPrintSupport() {
+                const printStyles = `
+                    @media print {
+                        .no-print { display: none !important; }
+                        .print-only { display: block !important; }
+                        body { background: white !important; }
+                        .product-card { break-inside: avoid; }
+                    }
+                `;
+                
+                const styleSheet = document.createElement('style');
+                styleSheet.textContent = printStyles;
+                document.head.appendChild(styleSheet);
+            }
+
+            printInventoryReport() {
+                const printWindow = window.open('', '_blank');
+                const analytics = this.getAdvancedAnalytics();
+                const currentDate = new Date().toLocaleDateString('it-IT');
+
+                const printContent = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Stock Ristorante - Report Inventario</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            .header { text-align: center; margin-bottom: 30px; }
+                            .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+                            .stat-box { border: 1px solid #ddd; padding: 15px; text-align: center; }
+                            .product-table { width: 100%; border-collapse: collapse; }
+                            .product-table th, .product-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                            .product-table th { background-color: #f5f5f5; }
+                            .status-ok { color: green; }
+                            .status-low { color: orange; }
+                            .status-out { color: red; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>📦 Stock Ristorante</h1>
+                            <h2>Report Inventario</h2>
+                            <p>Generato il ${currentDate}</p>
+                        </div>
+                        
+                        <div class="stats">
+                            <div class="stat-box">
+                                <h3>${analytics.inventory.totalProducts}</h3>
+                                <p>Prodotti Totali</p>
+                            </div>
+                            <div class="stat-box">
+                                <h3>€${analytics.inventory.totalValue.toFixed(2)}</h3>
+                                <p>Valore Inventario</p>
+                            </div>
+                            <div class="stat-box">
+                                <h3>${analytics.inventory.stockDistribution.low}</h3>
+                                <p>Stock Bassi</p>
+                            </div>
+                            <div class="stat-box">
+                                <h3>${this.ordersData.filter(o => o.stato === 'pending').length}</h3>
+                                <p>Ordini Pendenti</p>
+                            </div>
+                        </div>
+
+                        <table class="product-table">
+                            <thead>
+                                <tr>
+                                    <th>Categoria</th>
+                                    <th>Prodotto</th>
+                                    <th>Stock</th>
+                                    <th>Min</th>
+                                    <th>Prezzo</th>
+                                    <th>Valore</th>
+                                    <th>Stato</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${this.stockData.map(product => {
+                                    const status = this.getProductStatus(product);
+                                    const value = product.stockAttuale * product.prezzo;
+                                    return `
+                                        <tr>
+                                            <td>${product.categoria}</td>
+                                            <td>${product.prodotto}</td>
+                                            <td>${product.stockAttuale}</td>
+                                            <td>${product.stockMinimo}</td>
+                                            <td>€${product.prezzo.toFixed(2)}</td>
+                                            <td>€${value.toFixed(2)}</td>
+                                            <td class="status-${status}">${this.getStatusText(status)}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </body>
+                    </html>
+                `;
+
+                printWindow.document.write(printContent);
+                printWindow.document.close();
+                printWindow.print();
+            }
+
+            // Initialize everything
+            initializeAdvancedFeatures() {
+                this.setupProductSuggestions();
+                this.setupAdvancedSearch();
+                this.setupCloudSync();
+                this.setupAccessibility();
+                this.setupOfflineSupport();
+                this.setupPrintSupport();
+            }
+
+            // Final initialization
+            finalInit() {
+                // Load orders data
+                this.loadOrdersData();
+                
+                // Initialize advanced features
+                this.initializeAdvancedFeatures();
+                
+                // Setup periodic tasks
+                setInterval(() => {
+                    this.updateStats();
+                }, 10000); // Update stats every 10 seconds
+
+                // Welcome message for first-time users
+                if (this.stockData.length <= 8) { // Default data
+                    setTimeout(() => {
+                        this.showToast('Benvenuto! Inizia aggiungendo i tuoi prodotti', 'success');
+                    }, 2000);
+                }
+
+                console.log('📦 Stock Ristorante App inizializzata completamente!');
+            }
+        }
+
+        // Initialize the app
+        const stockApp = new MobileStockApp();
+
+        // Complete initialization
+        stockApp.finalInit();
+
+        // Global error handler
+        window.addEventListener('error', (e) => {
+            console.error('App error:', e.error);
+            stockApp.showToast('Si è verificato un errore', 'error');
+        });
+
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // PWA update notification
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                stockApp.showToast('App aggiornata! Ricarica per le nuove funzioni', 'success');
+            });
+        }
+
+        // Export for global access
+        window.stockApp = stockApp;
+    </script>
+
+    <!-- Additional CSS for print and mobile optimizations -->
+    <style>
+        /* Additional mobile-specific styles */
+        .supplier-card {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .supplier-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .supplier-header h4 {
+            margin: 0;
+            font-size: 1em;
+            color: var(--dark-color);
+        }
+
+        .supplier-type {
+            font-size: 0.7em;
+            background: var(--light-color);
+            padding: 2px 6px;
+            border-radius: 8px;
+            color: #666;
+        }
+
+        .supplier-info {
+            margin-bottom: 10px;
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .supplier-note {
+            font-style: italic;
+            margin-top: 4px;
+        }
+
+        .supplier-stats {
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .supplier-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 15px;
+            font-size: 0.7em;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .order-card.completed {
+            border-left-color: var(--success-color);
+            opacity: 0.8;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .order-info h4 {
+            margin: 0 0 4px 0;
+            font-size: 1em;
+            color: var(--dark-color);
+        }
+
+        .order-supplier, .order-date {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        .order-status {
+            text-align: right;
+        }
+
+        .order-total {
+            font-weight: bold;
+            color: var(--success-color);
+            margin-top: 4px;
+        }
+
+        .order-items {
+            background: var(--light-color);
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 0.8em;
+        }
+
+        .order-item {
+            margin: 2px 0;
+        }
+
+        .order-note {
+            font-style: italic;
+            color: #666;
+            font-size: 0.8em;
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 6px;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .quick-order-section {
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .quick-order-products {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .quick-order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .quick-order-item:last-child {
+            border-bottom: none;
+        }
+
+        .quick-order-info {
+            flex: 1;
+        }
+
+        .quick-order-info strong {
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .quick-order-category {
+            font-size: 0.7em;
+            color: #666;
+        }
+
+        .quick-order-status {
+            font-size: 0.7em;
+            margin-top: 2px;
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+
+        .quick-order-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .quick-order-qty {
+            width: 60px;
+            padding: 4px 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .quick-order-unit {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .quick-order-actions {
+            margin-top: 15px;
+        }
+
+        .suppliers-grid {
+            margin-bottom: 15px;
+        }
+
+        .order-details {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .detail-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .detail-section h4 {
+            margin: 0 0 10px 0;
+            color: var(--dark-color);
+            font-size: 1em;
+        }
+
+        .detail-item {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-items-list {
+            background: var(--light-color);
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .order-item-detail {
+            margin: 8px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .order-item-detail:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .item-qty {
+            font-size: 0.8em;
+            color: #666;
+            background: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .item-price {
+            font-size: 0.8em;
+            color: var(--success-color);
+        }
+
+        .order-note-detail {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            font-style: italic;
+        }
+
+        .order-actions-modal {
+            margin-top: 20px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .supplier-actions, .order-actions {
+                flex-direction: column;
+            }
+
+            .btn-small {
+                text-align: center;
+            }
+
+            .order-header {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .order-status {
+                text-align: left;
+            }
+
+            .quick-order-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .quick-order-controls {
+                justify-content: center;
+            }
+
+            .detail-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 4px;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .bottom-nav, .fab, .mobile-header, .search-card, 
+            .no-print, .modal, .toast {
+                display: none !important;
+            }
+
+            .content-cards {
+                margin-bottom: 0 !important;
+            }
+
+            .product-card, .order-card, .supplier-card {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ddd;
+                margin-bottom: 10px;
+            }
+
+            body {
+                background: white !important;
+                color: black !important;
+            }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .supplier-card, .order-card {
+                border: 2px solid currentColor;
+            }
+
+            .btn-small {
+                border: 1px solid currentColor;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            .supplier-card, .order-card, .btn-small {
+                transition: none !important;
+            }
+        }
+    </style>
+</body>
+</html>
