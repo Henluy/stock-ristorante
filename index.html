@@ -364,6 +364,94 @@
             font-size: 1.1em;
         }
 
+        /* Ordini styles */
+        .ordini-section {
+            padding: 15px;
+        }
+
+        .fornitori-list, .ordini-list {
+            margin-bottom: 20px;
+        }
+
+        .fornitore-card, .ordine-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .fornitore-header, .ordine-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .fornitore-info, .ordine-info {
+            flex: 1;
+        }
+
+        .fornitore-actions, .ordine-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .fornitore-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .fornitore-tipo {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .fornitore-contacts {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .ordine-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .ordine-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .ordine-status.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .ordine-products {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .ordine-product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .ordine-total {
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: right;
+        }
+
         /* Category cards */
         .category-card {
             background: white;
@@ -710,6 +798,121 @@
             border: 1px solid #ddd; 
         }
 
+        /* Ordini section styles */
+        .ordini-section {
+            padding: 15px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .section-header h2 {
+            font-size: 1.2em;
+            color: var(--dark-color);
+        }
+
+        .fornitori-list, .ordini-list {
+            margin-bottom: 20px;
+        }
+
+        .fornitore-card, .ordine-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .fornitore-header, .ordine-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .fornitore-info h3, .ordine-info h3 {
+            font-size: 1.1em;
+            margin-bottom: 4px;
+            color: var(--dark-color);
+        }
+
+        .fornitore-tipo, .ordine-status {
+            font-size: 0.8em;
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .fornitore-tipo {
+            background: var(--light-color);
+            color: #666;
+        }
+
+        .ordine-status {
+            font-weight: 500;
+        }
+
+        .ordine-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .ordine-status.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .fornitore-contact {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .fornitore-actions, .ordine-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 0.8em;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .ordine-products {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .ordine-product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 0.9em;
+        }
+
+        .ordine-total {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+            text-align: right;
+            font-weight: bold;
+            color: var(--success-color);
+        }
+
         .btn-full:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -963,6 +1166,100 @@
                 <h3>Nessun prodotto trovato</h3>
                 <p>Prova a modificare i filtri o aggiungi nuovi prodotti</p>
             </div>
+
+            <!-- Ordini Section -->
+            <div id="ordiniSection" class="ordini-section" style="display: none;">
+                <!-- Fornitori List -->
+                <div class="fornitori-list">
+                    <div class="section-header">
+                        <h2>Fornitori</h2>
+                        <button class="btn-circle btn-primary" id="addFornitoreBtn" title="Aggiungi fornitore">+</button>
+                    </div>
+                    <div id="fornitoriList"></div>
+                </div>
+
+                <!-- Ordini List -->
+                <div class="ordini-list">
+                    <div class="section-header">
+                        <h2>Ordini</h2>
+                        <button class="btn-circle btn-primary" id="addOrdineBtn" title="Aggiungi ordine">+</button>
+                    </div>
+                    <div id="ordiniList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit Fornitore Modal -->
+        <div id="fornitoreModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="fornitoreModalTitle">Nuovo Fornitore</h3>
+                    <button class="close-btn" type="button" aria-label="Chiudi">&times;</button>
+                </div>
+                <form id="fornitoreForm">
+                    <div class="form-group">
+                        <label class="form-label" for="fornitoreName">Nome *</label>
+                        <input type="text" id="fornitoreName" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="fornitoreTipo">Tipo *</label>
+                        <select id="fornitoreTipo" class="form-input" required>
+                            <option value="">Seleziona tipo</option>
+                            <option value="Supermercato">🏪 Supermercato</option>
+                            <option value="Fornitore">🚚 Fornitore</option>
+                            <option value="Produttore">🏭 Produttore</option>
+                            <option value="Altro">📦 Altro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="fornitoreTelefono">Telefono</label>
+                        <input type="tel" id="fornitoreTelefono" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="fornitoreNote">Note</label>
+                        <textarea id="fornitoreNote" class="form-input" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn-full btn-success" id="saveFornitoreBtn">
+                        ✅ Salva Fornitore
+                    </button>
+                    <button type="button" class="btn-full btn-cancel" id="cancelFornitoreBtn">
+                        ❌ Annulla
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Add/Edit Ordine Modal -->
+        <div id="ordineModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="ordineModalTitle">Nuovo Ordine</h3>
+                    <button class="close-btn" type="button" aria-label="Chiudi">&times;</button>
+                </div>
+                <form id="ordineForm">
+                    <div class="form-group">
+                        <label class="form-label" for="ordineFornitore">Fornitore *</label>
+                        <select id="ordineFornitore" class="form-input" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Prodotti</label>
+                        <div id="ordineProducts" class="ordine-products-list"></div>
+                        <button type="button" class="btn-full btn-primary" id="addProductToOrderBtn">
+                            + Aggiungi Prodotto
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ordineNote">Note</label>
+                        <textarea id="ordineNote" class="form-input" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn-full btn-success" id="saveOrdineBtn">
+                        ✅ Salva Ordine
+                    </button>
+                    <button type="button" class="btn-full btn-cancel" id="cancelOrdineBtn">
+                        ❌ Annulla
+                    </button>
+                </form>
+            </div>
         </div>
 
         <!-- Bottom Navigation -->
@@ -974,6 +1271,10 @@
             <button class="nav-item" data-view="categories">
                 <span class="nav-icon">🏷️</span>
                 Categorie
+            </button>
+            <button class="nav-item" data-view="ordini">
+                <span class="nav-icon">📦</span>
+                Ordini
             </button>
             <button class="nav-item" data-view="alerts">
                 <span class="nav-icon">🚨</span>
@@ -1075,6 +1376,7 @@
 
             init() {
                 this.loadData();
+                this.loadOrdersData();
                 this.setupEventListeners();
                 this.setupPWA();
                 this.setupGestures();
@@ -1153,7 +1455,7 @@
                 this.saveOrdersData();
             }
 
-            // Orders data management
+            // Orders and Suppliers data management
             saveOrdersData() {
                 try {
                     const ordersDataToSave = {
@@ -1186,6 +1488,311 @@
                 }
             }
 
+            // Fornitori management
+            openFornitoreModal(fornitoreId = null) {
+                const modal = document.getElementById('fornitoreModal');
+                const form = document.getElementById('fornitoreForm');
+                const title = document.getElementById('fornitoreModalTitle');
+
+                if (fornitoreId) {
+                    const fornitore = this.suppliersData.find(f => f.id === fornitoreId);
+                    if (fornitore) {
+                        title.textContent = 'Modifica Fornitore';
+                        form.dataset.fornitoreId = fornitoreId;
+                        document.getElementById('fornitoreName').value = fornitore.nome;
+                        document.getElementById('fornitoreTipo').value = fornitore.tipo;
+                        document.getElementById('fornitoreTelefono').value = fornitore.telefono || '';
+                        document.getElementById('fornitoreNote').value = fornitore.note || '';
+                    }
+                } else {
+                    title.textContent = 'Nuovo Fornitore';
+                    form.dataset.fornitoreId = '';
+                    form.reset();
+                }
+
+                modal.classList.add('show');
+            }
+
+            saveFornitore() {
+                const form = document.getElementById('fornitoreForm');
+                const fornitoreId = parseInt(form.dataset.fornitoreId) || null;
+                const fornitoreData = {
+                    nome: document.getElementById('fornitoreName').value,
+                    tipo: document.getElementById('fornitoreTipo').value,
+                    telefono: document.getElementById('fornitoreTelefono').value,
+                    note: document.getElementById('fornitoreNote').value
+                };
+
+                if (fornitoreId) {
+                    // Update existing fornitore
+                    const index = this.suppliersData.findIndex(f => f.id === fornitoreId);
+                    if (index !== -1) {
+                        this.suppliersData[index] = { ...this.suppliersData[index], ...fornitoreData };
+                    }
+                } else {
+                    // Add new fornitore
+                    this.suppliersData.push({
+                        id: this.nextSupplierId++,
+                        ...fornitoreData
+                    });
+                }
+
+                this.saveOrdersData();
+                this.closeAllModals();
+                this.renderFornitori();
+                this.showToast('Fornitore salvato con successo', 'success');
+            }
+
+            deleteFornitore(fornitoreId) {
+                const hasOrders = this.ordersData.some(order => order.fornitoreId === fornitoreId);
+                if (hasOrders) {
+                    this.showToast('Impossibile eliminare: ci sono ordini associati a questo fornitore', 'error');
+                    return;
+                }
+
+                if (confirm('Sei sicuro di voler eliminare questo fornitore?')) {
+                    this.suppliersData = this.suppliersData.filter(f => f.id !== fornitoreId);
+                    this.saveOrdersData();
+                    this.renderFornitori();
+                    this.showToast('Fornitore eliminato', 'success');
+                }
+            }
+
+            renderFornitori() {
+                const container = document.getElementById('fornitoriList');
+                if (!container) return;
+
+                container.innerHTML = this.suppliersData
+                    .sort((a, b) => a.nome.localeCompare(b.nome))
+                    .map(fornitore => `
+                        <div class="fornitore-card">
+                            <div class="fornitore-header">
+                                <div class="fornitore-info">
+                                    <div class="fornitore-name">${fornitore.nome}</div>
+                                    <div class="fornitore-tipo">${fornitore.tipo}</div>
+                                    ${fornitore.telefono ? `<div class="fornitore-contacts">📞 ${fornitore.telefono}</div>` : ''}
+                                </div>
+                                <div class="fornitore-actions">
+                                    <button class="btn-circle btn-secondary" onclick="app.openFornitoreModal(${fornitore.id})" title="Modifica">✏️</button>
+                                    <button class="btn-circle btn-danger" onclick="app.deleteFornitore(${fornitore.id})" title="Elimina">🗑️</button>
+                                </div>
+                            </div>
+                            ${fornitore.note ? `<div class="fornitore-note">${fornitore.note}</div>` : ''}
+                        </div>
+                    `).join('');
+            }
+
+            // Ordini management
+            openOrdineModal(ordineId = null) {
+                const modal = document.getElementById('ordineModal');
+                const form = document.getElementById('ordineForm');
+                const title = document.getElementById('ordineModalTitle');
+                const fornitoreSelect = document.getElementById('ordineFornitore');
+
+                // Populate fornitori select
+                fornitoreSelect.innerHTML = `
+                    <option value="">Seleziona fornitore</option>
+                    ${this.suppliersData.map(f => `
+                        <option value="${f.id}">${f.nome} (${f.tipo})</option>
+                    `).join('')}
+                `;
+
+                if (ordineId) {
+                    const ordine = this.ordersData.find(o => o.id === ordineId);
+                    if (ordine) {
+                        title.textContent = 'Modifica Ordine';
+                        form.dataset.ordineId = ordineId;
+                        fornitoreSelect.value = ordine.fornitoreId;
+                        document.getElementById('ordineNote').value = ordine.note || '';
+                        this.renderOrderProducts(ordine.items || []);
+                    }
+                } else {
+                    title.textContent = 'Nuovo Ordine';
+                    form.dataset.ordineId = '';
+                    form.reset();
+                    this.renderOrderProducts([]);
+                }
+
+                modal.classList.add('show');
+            }
+
+            addProductRowToOrder() {
+                const productsContainer = document.getElementById('ordineProducts');
+                const productRow = document.createElement('div');
+                productRow.className = 'ordine-product-item';
+                productRow.innerHTML = `
+                    <input type="text" class="form-input" placeholder="Nome prodotto" required>
+                    <input type="number" class="form-input" placeholder="Quantità" min="1" value="1" required>
+                    <select class="form-input">
+                        <option value="pz">Pezzi</option>
+                        <option value="kg">Kg</option>
+                        <option value="g">g</option>
+                        <option value="l">L</option>
+                    </select>
+                    <input type="number" class="form-input" placeholder="Prezzo" min="0" step="0.01" required>
+                    <button type="button" class="btn-circle btn-danger" onclick="this.parentElement.remove()">-</button>
+                `;
+                productsContainer.appendChild(productRow);
+            }
+
+            renderOrderProducts(items) {
+                const container = document.getElementById('ordineProducts');
+                container.innerHTML = '';
+                items.forEach(item => {
+                    const productRow = document.createElement('div');
+                    productRow.className = 'ordine-product-item';
+                    productRow.innerHTML = `
+                        <input type="text" class="form-input" value="${item.nome}" required>
+                        <input type="number" class="form-input" value="${item.quantita}" min="1" required>
+                        <select class="form-input">
+                            <option value="pz" ${item.unita === 'pz' ? 'selected' : ''}>Pezzi</option>
+                            <option value="kg" ${item.unita === 'kg' ? 'selected' : ''}>Kg</option>
+                            <option value="g" ${item.unita === 'g' ? 'selected' : ''}>g</option>
+                            <option value="l" ${item.unita === 'l' ? 'selected' : ''}>L</option>
+                        </select>
+                        <input type="number" class="form-input" value="${item.prezzo}" min="0" step="0.01" required>
+                        <button type="button" class="btn-circle btn-danger" onclick="this.parentElement.remove()">-</button>
+                    `;
+                    container.appendChild(productRow);
+                });
+            }
+
+            saveOrdine() {
+                const form = document.getElementById('ordineForm');
+                const ordineId = parseInt(form.dataset.ordineId) || null;
+                const fornitoreId = parseInt(document.getElementById('ordineFornitore').value);
+                
+                // Collect products
+                const products = [];
+                document.querySelectorAll('.ordine-product-item').forEach(row => {
+                    const inputs = row.querySelectorAll('input, select');
+                    products.push({
+                        nome: inputs[0].value,
+                        quantita: parseFloat(inputs[1].value),
+                        unita: inputs[2].value,
+                        prezzo: parseFloat(inputs[3].value)
+                    });
+                });
+
+                const ordineData = {
+                    fornitoreId,
+                    items: products,
+                    note: document.getElementById('ordineNote').value,
+                    stato: 'pendente',
+                    dataCreazione: new Date().toISOString()
+                };
+
+                if (ordineId) {
+                    // Update existing ordine
+                    const index = this.ordersData.findIndex(o => o.id === ordineId);
+                    if (index !== -1) {
+                        this.ordersData[index] = { ...this.ordersData[index], ...ordineData };
+                    }
+                } else {
+                    // Add new ordine
+                    this.ordersData.push({
+                        id: this.nextOrderId++,
+                        ...ordineData
+                    });
+                }
+
+                this.saveOrdersData();
+                this.closeAllModals();
+                this.renderOrdini();
+                this.showToast('Ordine salvato con successo', 'success');
+            }
+
+            deleteOrdine(ordineId) {
+                if (confirm('Sei sicuro di voler eliminare questo ordine?')) {
+                    this.ordersData = this.ordersData.filter(o => o.id !== ordineId);
+                    this.saveOrdersData();
+                    this.renderOrdini();
+                    this.showToast('Ordine eliminato', 'success');
+                }
+            }
+
+            toggleOrdineStatus(ordineId) {
+                const ordine = this.ordersData.find(o => o.id === ordineId);
+                if (ordine) {
+                    ordine.stato = ordine.stato === 'pendente' ? 'completato' : 'pendente';
+                    this.saveOrdersData();
+                    this.renderOrdini();
+                    this.showToast(`Ordine ${ordine.stato === 'completato' ? 'completato' : 'riaperto'}`, 'success');
+                }
+            }
+
+            renderOrdini() {
+                const container = document.getElementById('ordiniList');
+                if (!container) return;
+
+                const ordiniGrouped = {
+                    pendenti: this.ordersData.filter(o => o.stato === 'pendente'),
+                    completati: this.ordersData.filter(o => o.stato === 'completato')
+                };
+
+                container.innerHTML = `
+                    <div class="ordini-section">
+                        <h3>Ordini Pendenti</h3>
+                        ${this.renderOrdiniList(ordiniGrouped.pendenti)}
+                    </div>
+                    <div class="ordini-section">
+                        <h3>Ordini Completati</h3>
+                        ${this.renderOrdiniList(ordiniGrouped.completati)}
+                    </div>
+                `;
+            }
+
+            renderOrdiniList(ordini) {
+                if (ordini.length === 0) {
+                    return '<div class="empty-state">Nessun ordine</div>';
+                }
+
+                return ordini
+                    .sort((a, b) => new Date(b.dataCreazione) - new Date(a.dataCreazione))
+                    .map(ordine => {
+                        const fornitore = this.suppliersData.find(f => f.id === ordine.fornitoreId);
+                        const total = ordine.items.reduce((sum, item) => sum + (item.quantita * item.prezzo), 0);
+                        
+                        return `
+                            <div class="ordine-card">
+                                <div class="ordine-header">
+                                    <div class="ordine-info">
+                                        <div class="fornitore-name">${fornitore ? fornitore.nome : 'Fornitore sconosciuto'}</div>
+                                        <div class="ordine-date">${new Date(ordine.dataCreazione).toLocaleDateString()}</div>
+                                    </div>
+                                    <div class="ordine-status ${ordine.stato}">
+                                        ${ordine.stato === 'pendente' ? '⏳ In attesa' : '✅ Completato'}
+                                    </div>
+                                </div>
+                                <div class="ordine-products">
+                                    ${ordine.items.map(item => `
+                                        <div class="ordine-product-item">
+                                            <span>${item.nome}</span>
+                                            <span>${item.quantita} ${item.unita}</span>
+                                            <span>€${item.prezzo.toFixed(2)}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div class="ordine-total">Totale: €${total.toFixed(2)}</div>
+                                <div class="ordine-actions">
+                                    <button class="btn-circle btn-${ordine.stato === 'pendente' ? 'success' : 'secondary'}" 
+                                            onclick="app.toggleOrdineStatus(${ordine.id})" 
+                                            title="${ordine.stato === 'pendente' ? 'Completa' : 'Riapri'}">
+                                        ${ordine.stato === 'pendente' ? '✅' : '⏳'}
+                                    </button>
+                                    <button class="btn-circle btn-secondary" 
+                                            onclick="app.openOrdineModal(${ordine.id})" 
+                                            title="Modifica">✏️</button>
+                                    <button class="btn-circle btn-danger" 
+                                            onclick="app.deleteOrdine(${ordine.id})" 
+                                            title="Elimina">🗑️</button>
+                                </div>
+                                ${ordine.note ? `<div class="ordine-note">${ordine.note}</div>` : ''}
+                            </div>
+                        `;
+                    }).join('');
+            }
+
             // ==================== EVENT LISTENERS ====================
             setupEventListeners() {
                 // Search
@@ -1195,6 +1802,29 @@
                         this.searchTerm = e.target.value.toLowerCase();
                         this.render();
                     }, 300);
+                });
+
+                // Ordini section event listeners
+                document.getElementById('addFornitoreBtn')?.addEventListener('click', () => {
+                    this.openFornitoreModal();
+                });
+
+                document.getElementById('addOrdineBtn')?.addEventListener('click', () => {
+                    this.openOrdineModal();
+                });
+
+                document.getElementById('fornitoreForm')?.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveFornitore();
+                });
+
+                document.getElementById('ordineForm')?.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveOrdine();
+                });
+
+                document.getElementById('addProductToOrderBtn')?.addEventListener('click', () => {
+                    this.addProductRowToOrder();
                 });
 
                 // Filter chips
@@ -1323,11 +1953,38 @@
             render() {
                 clearTimeout(this.renderTimeout);
                 this.renderTimeout = setTimeout(() => {
-                    if (this.currentView === 'orders') {
-                        this.renderOrdersView();
-                    } else {
+                    // Hide all sections first
+                    document.querySelectorAll('.content-cards > div').forEach(div => {
+                        if (div.id !== 'pullIndicator') {
+                            div.style.display = 'none';
+                        }
+                    });
+
+                    // Update navigation
+                    document.querySelectorAll('.nav-item').forEach(item => {
+                        item.classList.toggle('active', item.dataset.view === this.currentView);
+                    });
+
+                    // Show current section
+                    if (this.currentView === 'ordini') {
+                        document.getElementById('ordiniSection').style.display = 'block';
+                        this.renderFornitori();
+                        this.renderOrdini();
+                    } else if (this.currentView === 'list') {
+                        document.getElementById('productList').style.display = 'block';
                         this.renderProducts();
+                    } else if (this.currentView === 'categories') {
+                        document.getElementById('categoriesView').style.display = 'block';
+                        this.renderCategoriesView();
+                    } else if (this.currentView === 'alerts') {
+                        document.getElementById('alertsView').style.display = 'block';
+                        this.renderAlertsView();
+                    } else if (this.currentView === 'export') {
+                        document.getElementById('exportView').style.display = 'block';
+                        this.renderExportView();
                     }
+
+                    // Update stats
                     this.updateStats();
                 }, 100);
             }
@@ -3556,6 +4213,347 @@
                 window.addEventListener('online', updateOnlineStatus);
                 window.addEventListener('offline', updateOnlineStatus);
                 updateOnlineStatus();
+            }
+
+            // Ordini management
+            saveOrdersData() {
+                localStorage.setItem('suppliersData', JSON.stringify(this.suppliersData));
+                localStorage.setItem('ordersData', JSON.stringify(this.ordersData));
+            }
+
+            loadOrdersData() {
+                const suppliersData = localStorage.getItem('suppliersData');
+                const ordersData = localStorage.getItem('ordersData');
+                this.suppliersData = suppliersData ? JSON.parse(suppliersData) : [];
+                this.ordersData = ordersData ? JSON.parse(ordersData) : [];
+            }
+
+            // Fornitori management
+            openFornitoreModal(fornitore = null) {
+                const modal = document.getElementById('fornitoreModal');
+                const title = document.getElementById('fornitoreModalTitle');
+                const form = document.getElementById('fornitoreForm');
+                const nameInput = document.getElementById('fornitoreName');
+                const tipoInput = document.getElementById('fornitoreTipo');
+                const telefonoInput = document.getElementById('fornitoreTelefono');
+                const noteInput = document.getElementById('fornitoreNote');
+
+                if (fornitore) {
+                    title.textContent = 'Modifica Fornitore';
+                    nameInput.value = fornitore.nome;
+                    tipoInput.value = fornitore.tipo;
+                    telefonoInput.value = fornitore.telefono || '';
+                    noteInput.value = fornitore.note || '';
+                    form.dataset.fornitoreId = fornitore.id;
+                } else {
+                    title.textContent = 'Nuovo Fornitore';
+                    form.reset();
+                    delete form.dataset.fornitoreId;
+                }
+
+                modal.classList.add('show');
+            }
+
+            saveFornitore(event) {
+                event.preventDefault();
+                const form = event.target;
+                const fornitoreId = form.dataset.fornitoreId;
+                const fornitore = {
+                    id: fornitoreId || Date.now().toString(),
+                    nome: document.getElementById('fornitoreName').value,
+                    tipo: document.getElementById('fornitoreTipo').value,
+                    telefono: document.getElementById('fornitoreTelefono').value,
+                    note: document.getElementById('fornitoreNote').value
+                };
+
+                if (fornitoreId) {
+                    const index = this.suppliersData.findIndex(f => f.id === fornitoreId);
+                    if (index !== -1) {
+                        this.suppliersData[index] = fornitore;
+                    }
+                } else {
+                    this.suppliersData.push(fornitore);
+                }
+
+                this.saveOrdersData();
+                this.renderFornitori();
+                document.getElementById('fornitoreModal').classList.remove('show');
+                this.showToast('Fornitore salvato con successo!', 'success');
+            }
+
+            deleteFornitore(id) {
+                const fornitore = this.suppliersData.find(f => f.id === id);
+                if (!fornitore) return;
+
+                const hasOrders = this.ordersData.some(o => o.fornitoreId === id);
+                if (hasOrders) {
+                    this.showToast('Impossibile eliminare: ci sono ordini associati a questo fornitore', 'error');
+                    return;
+                }
+
+                if (confirm(`Sei sicuro di voler eliminare il fornitore ${fornitore.nome}?`)) {
+                    this.suppliersData = this.suppliersData.filter(f => f.id !== id);
+                    this.saveOrdersData();
+                    this.renderFornitori();
+                    this.showToast('Fornitore eliminato con successo!', 'success');
+                }
+            }
+
+            renderFornitori() {
+                const container = document.getElementById('fornitoriList');
+                if (!container) return;
+
+                container.innerHTML = this.suppliersData.map(fornitore => `
+                    <div class="fornitore-card">
+                        <div class="fornitore-header">
+                            <div class="fornitore-info">
+                                <h3>${fornitore.nome}</h3>
+                                <span class="fornitore-tipo">${fornitore.tipo}</span>
+                                ${fornitore.telefono ? `<div class="fornitore-contact">📞 ${fornitore.telefono}</div>` : ''}
+                            </div>
+                            <div class="fornitore-actions">
+                                <button class="btn-small btn-primary" onclick="app.openFornitoreModal(${JSON.stringify(fornitore)})">
+                                    ✏️ Modifica
+                                </button>
+                                <button class="btn-small btn-danger" onclick="app.deleteFornitore('${fornitore.id}')">
+                                    🗑️ Elimina
+                                </button>
+                            </div>
+                        </div>
+                        ${fornitore.note ? `<div class="fornitore-note">${fornitore.note}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+
+            // Ordini management methods
+            openOrdineModal(ordine = null) {
+                const modal = document.getElementById('ordineModal');
+                const title = document.getElementById('ordineModalTitle');
+                const form = document.getElementById('ordineForm');
+                const fornitoreSelect = document.getElementById('ordineFornitore');
+                const noteInput = document.getElementById('ordineNote');
+                const productsList = document.getElementById('ordineProducts');
+
+                // Populate suppliers dropdown
+                fornitoreSelect.innerHTML = `
+                    <option value="">Seleziona fornitore</option>
+                    ${this.suppliersData.map(f => `
+                        <option value="${f.id}">${f.nome} (${f.tipo})</option>
+                    `).join('')}
+                `;
+
+                if (ordine) {
+                    title.textContent = 'Modifica Ordine';
+                    fornitoreSelect.value = ordine.fornitoreId;
+                    noteInput.value = ordine.note || '';
+                    form.dataset.ordineId = ordine.id;
+                    
+                    // Render existing products
+                    this.renderOrderProducts(ordine.items || []);
+                } else {
+                    title.textContent = 'Nuovo Ordine';
+                    form.reset();
+                    delete form.dataset.ordineId;
+                    productsList.innerHTML = '';
+                }
+
+                modal.classList.add('show');
+            }
+
+            addProductRowToOrder() {
+                const productsList = document.getElementById('ordineProducts');
+                const productRow = document.createElement('div');
+                productRow.className = 'ordine-product-row';
+                productRow.innerHTML = `
+                    <div class="form-group">
+                        <select class="form-input product-select" required>
+                            <option value="">Seleziona prodotto</option>
+                            ${this.stockData.map(p => `
+                                <option value="${p.id}">${p.nome} (${p.categoria})</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input type="number" class="form-input product-qty" 
+                               placeholder="Quantità" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <input type="number" class="form-input product-price" 
+                               placeholder="Prezzo" required min="0" step="0.01">
+                    </div>
+                    <button type="button" class="btn-circle btn-danger" 
+                            onclick="this.parentElement.remove()">×</button>
+                `;
+                productsList.appendChild(productRow);
+            }
+
+            renderOrderProducts(items) {
+                const productsList = document.getElementById('ordineProducts');
+                productsList.innerHTML = '';
+                
+                items.forEach(item => {
+                    const productRow = document.createElement('div');
+                    productRow.className = 'ordine-product-row';
+                    productRow.innerHTML = `
+                        <div class="form-group">
+                            <select class="form-input product-select" required>
+                                <option value="">Seleziona prodotto</option>
+                                ${this.stockData.map(p => `
+                                    <option value="${p.id}" ${p.id === item.productId ? 'selected' : ''}>
+                                        ${p.nome} (${p.categoria})
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="number" class="form-input product-qty" 
+                                   value="${item.quantita}" required min="1">
+                        </div>
+                        <div class="form-group">
+                            <input type="number" class="form-input product-price" 
+                                   value="${item.prezzo}" required min="0" step="0.01">
+                        </div>
+                        <button type="button" class="btn-circle btn-danger" 
+                                onclick="this.parentElement.remove()">×</button>
+                    `;
+                    productsList.appendChild(productRow);
+                });
+            }
+
+            saveOrdine(event) {
+                event.preventDefault();
+                const form = event.target;
+                const ordineId = form.dataset.ordineId;
+                
+                // Collect products data
+                const products = [];
+                document.querySelectorAll('.ordine-product-row').forEach(row => {
+                    products.push({
+                        productId: row.querySelector('.product-select').value,
+                        quantita: parseInt(row.querySelector('.product-qty').value),
+                        prezzo: parseFloat(row.querySelector('.product-price').value)
+                    });
+                });
+
+                const ordine = {
+                    id: ordineId || Date.now().toString(),
+                    fornitoreId: document.getElementById('ordineFornitore').value,
+                    note: document.getElementById('ordineNote').value,
+                    items: products,
+                    stato: 'pending',
+                    data: new Date().toISOString()
+                };
+
+                if (ordineId) {
+                    const index = this.ordersData.findIndex(o => o.id === ordineId);
+                    if (index !== -1) {
+                        ordine.stato = this.ordersData[index].stato;
+                        this.ordersData[index] = ordine;
+                    }
+                } else {
+                    this.ordersData.push(ordine);
+                }
+
+                this.saveOrdersData();
+                this.renderOrdini();
+                document.getElementById('ordineModal').classList.remove('show');
+                this.showToast('Ordine salvato con successo!', 'success');
+            }
+
+            deleteOrdine(id) {
+                const ordine = this.ordersData.find(o => o.id === id);
+                if (!ordine) return;
+
+                if (confirm('Sei sicuro di voler eliminare questo ordine?')) {
+                    this.ordersData = this.ordersData.filter(o => o.id !== id);
+                    this.saveOrdersData();
+                    this.renderOrdini();
+                    this.showToast('Ordine eliminato con successo!', 'success');
+                }
+            }
+
+            toggleOrdineStatus(id) {
+                const ordine = this.ordersData.find(o => o.id === id);
+                if (!ordine) return;
+
+                ordine.stato = ordine.stato === 'pending' ? 'completed' : 'pending';
+                this.saveOrdersData();
+                this.renderOrdini();
+                this.showToast(
+                    `Ordine ${ordine.stato === 'completed' ? 'completato' : 'riaperto'}!`,
+                    'success'
+                );
+            }
+
+            renderOrdini() {
+                const container = document.getElementById('ordiniList');
+                if (!container) return;
+
+                // Group orders by status
+                const pendingOrders = this.ordersData.filter(o => o.stato === 'pending');
+                const completedOrders = this.ordersData.filter(o => o.stato === 'completed');
+
+                container.innerHTML = `
+                    ${this.renderOrdiniList('Ordini in Corso', pendingOrders)}
+                    ${this.renderOrdiniList('Ordini Completati', completedOrders)}
+                `;
+            }
+
+            renderOrdiniList(title, orders) {
+                if (orders.length === 0) return '';
+
+                return `
+                    <div class="ordini-group">
+                        <h3>${title}</h3>
+                        ${orders.map(ordine => {
+                            const fornitore = this.suppliersData.find(f => f.id === ordine.fornitoreId);
+                            const total = ordine.items.reduce((sum, item) => 
+                                sum + (item.quantita * item.prezzo), 0);
+
+                            return `
+                                <div class="ordine-card">
+                                    <div class="ordine-header">
+                                        <div class="ordine-info">
+                                            <h3>${fornitore ? fornitore.nome : 'Fornitore sconosciuto'}</h3>
+                                            <span class="ordine-status ${ordine.stato}">
+                                                ${ordine.stato === 'pending' ? '⏳ In corso' : '✅ Completato'}
+                                            </span>
+                                        </div>
+                                        <div class="ordine-actions">
+                                            <button class="btn-small btn-primary" 
+                                                    onclick="app.openOrdineModal(${JSON.stringify(ordine)})">
+                                                ✏️ Modifica
+                                            </button>
+                                            <button class="btn-small btn-${ordine.stato === 'pending' ? 'success' : 'warning'}" 
+                                                    onclick="app.toggleOrdineStatus('${ordine.id}')">
+                                                ${ordine.stato === 'pending' ? '✅ Completa' : '⏮️ Riapri'}
+                                            </button>
+                                            <button class="btn-small btn-danger" 
+                                                    onclick="app.deleteOrdine('${ordine.id}')">
+                                                🗑️ Elimina
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="ordine-products">
+                                        ${ordine.items.map(item => {
+                                            const product = this.stockData.find(p => p.id === item.productId);
+                                            return `
+                                                <div class="ordine-product-item">
+                                                    <span>${product ? product.nome : 'Prodotto sconosciuto'}</span>
+                                                    <span>${item.quantita}x € ${item.prezzo.toFixed(2)}</span>
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                    <div class="ordine-total">
+                                        Totale: € ${total.toFixed(2)}
+                                    </div>
+                                    ${ordine.note ? `<div class="ordine-note">${ordine.note}</div>` : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
             }
 
             // Advanced analytics
