@@ -1616,6 +1616,10 @@
                 modal.classList.add('show');
             }
 
+            openNewOrderModal() {
+                this.openOrdineModal();
+            }
+
             addProductRowToOrder() {
                 const productsContainer = document.getElementById('ordineProducts');
                 const productRow = document.createElement('div');
@@ -1975,13 +1979,13 @@
                         this.renderProducts();
                     } else if (this.currentView === 'categories') {
                         document.getElementById('categoriesView').style.display = 'block';
-                        this.renderCategoriesView();
+                        this.showCategoriesView();
                     } else if (this.currentView === 'alerts') {
                         document.getElementById('alertsView').style.display = 'block';
-                        this.renderAlertsView();
+                        this.showAlertsView();
                     } else if (this.currentView === 'export') {
                         document.getElementById('exportView').style.display = 'block';
-                        this.renderExportView();
+                        this.showExportView();
                     }
 
                     // Update stats
